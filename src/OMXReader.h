@@ -109,7 +109,6 @@ class OMXReader
 		bool Open(std::string filename, bool doSkipAvProbe);
 		void ClearStreams();
 		bool Close();
-		//void FlushRead();
 		bool SeekTime(int time, bool backwords, double *startpts, bool doLoopOnFail = true);
 		AVMediaType PacketType(OMXPacket *pkt);
 		OMXPacket *Read();

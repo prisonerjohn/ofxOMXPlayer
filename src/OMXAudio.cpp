@@ -669,7 +669,7 @@ void COMXAudio::Flush()
 		m_omx_tunnel_mixer.Flush();
 	}
 
-	//m_setStartTime  = true;
+	m_setStartTime  = true;
 	//m_first_frame   = true;
 }
 

@@ -30,7 +30,7 @@
 #include "XMemUtils.h"
 
 
-#define MAX_DATA_SIZE    3 * 1024 * 1024
+#define MAX_DATA_SIZE    1 * 1024 * 1024
 
 OMXPlayerAudio::OMXPlayerAudio()
 {

@@ -129,6 +129,7 @@ class ofxOMXPlayerEngine: public OMXThread
 		void					onVideoEnd();
 		void					onVideoLoop();
 		double					previousLoopOffset;
+        bool hasSubmittedEOS;
 	
 	ofRectangle displayRect;
 	

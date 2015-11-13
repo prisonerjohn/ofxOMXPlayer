@@ -1,9 +1,23 @@
 #include "ofApp.h"
 
+
+void ofApp::onVideoEnd(ofxOMXPlayerListenerEventData& e)
+{
+}
+void ofApp::onVideoLoop(ofxOMXPlayerListenerEventData& e)
+{
+    ofLogVerbose(__func__) << "at: " << ofGetElapsedTimeMillis();
+    //omxPlayer.setPaused(true);
+    //ofSleepMillis(8000);
+    //omxPlayer.setPaused(false);
+
+}
+
+
 //--------------------------------------------------------------
 void ofApp::setup()
 {
-	//ofSetLogLevel(OF_LOG_VERBOSE);
+	ofSetLogLevel(OF_LOG_VERBOSE);
 	
 	string videoPath = ofToDataPath("../../../video/Timecoded_Big_bunny_1.mov", true);
 	
@@ -15,7 +29,7 @@ void ofApp::setup()
 	settings.enableLooping = true;		//default true
 	settings.enableAudio = true;		//default true, save resources by disabling
 	//settings.doFlipTexture = true;		//default false
-	
+    settings.listener = this;
 	
 	//so either pass in the settings
 	omxPlayer.setup(settings);

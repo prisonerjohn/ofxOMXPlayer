@@ -319,15 +319,7 @@ bool OMXReader::Close()
 	return true;
 }
 
-/*void OMXReader::FlushRead()
- {
- m_iCurrentPts = DVD_NOPTS_VALUE;
- 
- if(!m_pFormatContext)
- return;
- 
- ff_read_frame_flush(m_pFormatContext);
- }*/
+
 
 bool OMXReader::SeekTime(int time, bool backwords, double *startpts, bool doLoopOnFail)
 {
@@ -345,7 +337,6 @@ bool OMXReader::SeekTime(int time, bool backwords, double *startpts, bool doLoop
 	
 	Lock();
 	
-	//FlushRead();
 	
 	if(m_ioContext)
     {
@@ -364,6 +355,7 @@ bool OMXReader::SeekTime(int time, bool backwords, double *startpts, bool doLoop
 	if(ret >= 0)
 	{
 		UpdateCurrentPTS();
+        m_pFile->rewindFile();
 	}else {
 		//ofLogVerbose(__func__) << "av_seek_frame returned >= 0, no UpdateCurrentPTS" << ret;
 		m_pFile->rewindFile();
@@ -377,11 +369,11 @@ bool OMXReader::SeekTime(int time, bool backwords, double *startpts, bool doLoop
     }
 	
 	m_eof = false;
-	if (m_pFile && m_pFile->IsEOF() && ret <= 0)
+	/*if (m_pFile && m_pFile->IsEOF() && ret <= 0)
 	{
 		m_eof = true;
 		ret = 0;
-	}
+	}*/
 
    
 	UnLock();
@@ -430,7 +422,6 @@ OMXPacket* OMXReader::Read()
 		if(m_pFormatContext->pb && !m_pFormatContext->pb->eof_reached)
 		{
 			ofLog(OF_LOG_ERROR, "OMXReader::Read no valid packet");
-			//FlushRead();
 		}
 		
 		av_free_packet(&pkt);
@@ -900,16 +891,12 @@ bool OMXReader::IsEof()
 
 void OMXReader::FreePacket(OMXPacket *pkt)
 {
-	delete pkt->data;
-	pkt->data = NULL;
-	delete pkt;
-	pkt = NULL;
-	/*if(pkt)
-	{
-		if(pkt->data)
-			free(pkt->data);
-		free(pkt);
-	}*/
+    if(pkt)
+    {
+        if(pkt->data)
+            free(pkt->data);
+        free(pkt);
+    }
 }
 
 OMXPacket *OMXReader::AllocPacket(int size)
