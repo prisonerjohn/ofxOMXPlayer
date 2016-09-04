@@ -1,12 +1,12 @@
 #pragma once
 
-#include "ofMain.h"
+#include "OMX_Maps.h"
 
 #include "LIBAV_INCLUDES.h"
 
+
 #include "StreamInfo.h"
 #include "OMXThread.h"
-#include <queue>
 
 #include "StreamInfo.h"
 
@@ -14,7 +14,6 @@
 
 
 #include <sys/types.h>
-#include <string>
 
 using namespace XFILE;
 

@@ -93,5 +93,6 @@ public:
 
     
     CriticalSection  m_critSection;
+    int EndOfFrameCounter;
 };
 

@@ -23,6 +23,7 @@ BaseVideoDecoder::BaseVideoDecoder()
 	clockComponent  = NULL;
     doFilters       = false; 
     omxCodingType   = OMX_VIDEO_CodingUnused;
+    EndOfFrameCounter = 0;
 
 }
 #define NUMBER_TO_STRING(x) #x
@@ -205,6 +206,8 @@ bool BaseVideoDecoder::decode(uint8_t* demuxer_content, int iSize, double pts)
             if(demuxer_bytes == 0)
             {
                 //ofLogVerbose(__func__) << "OMX_BUFFERFLAG_ENDOFFRAME";
+                EndOfFrameCounter++;
+                ofLogVerbose(__func__) << "EndOfFrameCounter: " << EndOfFrameCounter;
                 omxBuffer->nFlags |= OMX_BUFFERFLAG_ENDOFFRAME;
             }
 
