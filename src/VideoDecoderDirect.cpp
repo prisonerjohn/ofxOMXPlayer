@@ -18,7 +18,7 @@ VideoDecoderDirect::~VideoDecoderDirect()
 	ofLogVerbose(__func__) << "removed update listener";
 }
 
-bool VideoDecoderDirect::open(StreamInfo& streamInfo, OMXClock *clock, ofxOMXPlayerSettings& settings_)
+bool VideoDecoderDirect::open(StreamInfo& streamInfo, Component* clockComponent_, ofxOMXPlayerSettings& settings_)
 {
 	OMX_ERRORTYPE error   = OMX_ErrorNone;
 
@@ -26,8 +26,7 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo, OMXClock *clock, ofxOMXPla
 	videoHeight = streamInfo.height;
 
     settings = settings_;
-    omxClock = clock;
-    clockComponent = omxClock->getComponent();
+    clockComponent = clockComponent_;
 	doHDMISync = settings.directDisplayOptions.doHDMISync;
     
 

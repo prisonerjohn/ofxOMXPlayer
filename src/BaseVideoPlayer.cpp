@@ -14,14 +14,13 @@ unsigned count_bits(int32_t value)
 BaseVideoPlayer::BaseVideoPlayer()
 {
 	isOpen          = false;
-	omxClock      = NULL;
 	decoder       = NULL;
 	fps           = 25.0f;
 	doFlush         = false;
 	cachedSize   = 0;
 	currentPTS	= DVD_NOPTS_VALUE;
 	speed         = DVD_PLAYSPEED_NORMAL;
-
+    clockComponent = NULL;
 	decoder = NULL;
 	pthread_cond_init(&m_packet_cond, NULL);
 	pthread_mutex_init(&m_lock, NULL);
@@ -36,7 +35,6 @@ BaseVideoPlayer::~BaseVideoPlayer()
     pthread_mutex_destroy(&m_lock);
     pthread_mutex_destroy(&m_lock_decoder);
     
-    omxClock      = NULL;
     decoder       = NULL;
 }
 

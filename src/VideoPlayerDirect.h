@@ -12,7 +12,7 @@ public:
             
     VideoDecoderDirect* directDecoder;
     
-    bool open(StreamInfo& hints, OMXClock *av_clock, ofxOMXPlayerSettings& settings_);
+    bool open(StreamInfo& hints, Component* clockComponent_, ofxOMXPlayerSettings& settings_);
     bool openDecoder();
     void close();
     

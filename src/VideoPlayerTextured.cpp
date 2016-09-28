@@ -19,16 +19,12 @@ VideoPlayerTextured::~VideoPlayerTextured()
     close();
 }
 
-bool VideoPlayerTextured::open(StreamInfo& hints, OMXClock *av_clock, ofxOMXPlayerSettings& settings_, EGLImageKHR eglImage_)
+bool VideoPlayerTextured::open(StreamInfo& hints, Component* clockComponent_, ofxOMXPlayerSettings& settings_, EGLImageKHR eglImage_)
 {
 
 	eglImage = eglImage_;
     settings = settings_;
     
-	if (!av_clock)
-	{
-		return false;
-	}
 
 	if(ThreadHandle())
 	{
@@ -37,15 +33,13 @@ bool VideoPlayerTextured::open(StreamInfo& hints, OMXClock *av_clock, ofxOMXPlay
 
 
 	omxStreamInfo       = hints;
-	omxClock    = av_clock;
+	clockComponent    = clockComponent_;
 	fps         = 25.0f;
-	frameTime   = 0;
 	currentPTS = DVD_NOPTS_VALUE;
 	doAbort      = false;
 	doFlush       = false;
 	cachedSize = 0;
 	speed       = DVD_PLAYSPEED_NORMAL;
-	timeStampAdjustment = omxClock->getAbsoluteClock();
 
 	if(!openDecoder())
 	{
@@ -79,7 +73,6 @@ bool VideoPlayerTextured::openDecoder()
 		fps = 25;
 	}
 
-	frameTime = (double)DVD_TIME_BASE / fps;
 
 	if (!textureDecoder)
 	{
@@ -89,7 +82,7 @@ bool VideoPlayerTextured::openDecoder()
 
 	decoder = (BaseVideoDecoder*)textureDecoder;
 
-	if(!textureDecoder->open(omxStreamInfo, omxClock, settings, eglImage))
+	if(!textureDecoder->open(omxStreamInfo, clockComponent, settings, eglImage))
 	{
         delete textureDecoder;
         textureDecoder = NULL;

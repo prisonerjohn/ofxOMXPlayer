@@ -34,13 +34,8 @@ VideoPlayerDirect::~VideoPlayerDirect()
     close();
 }
 
-bool VideoPlayerDirect::open(StreamInfo& hints, OMXClock* av_clock, ofxOMXPlayerSettings& settings_)
+bool VideoPlayerDirect::open(StreamInfo& hints, Component* clockComponent_, ofxOMXPlayerSettings& settings_)
 {
-
-	if (!av_clock)
-	{
-		return false;
-	}
 
 	if(ThreadHandle())
 	{
@@ -51,17 +46,15 @@ bool VideoPlayerDirect::open(StreamInfo& hints, OMXClock* av_clock, ofxOMXPlayer
     settings = settings_;
 
 	omxStreamInfo   = hints;
-	omxClock        = av_clock;
 	fps             = 25.0f;
-	frameTime       = 0;
 	currentPTS      = DVD_NOPTS_VALUE;
 	doAbort         = false;
 	doFlush         = false;
 	cachedSize      = 0;
 	speed           = DVD_PLAYSPEED_NORMAL;
-	
+    clockComponent = clockComponent_;
 
-	timeStampAdjustment = omxClock->getAbsoluteClock();
+
 
 	if(!openDecoder())
 	{
@@ -95,12 +88,11 @@ bool VideoPlayerDirect::openDecoder()
 		fps = 25;
 	}
 
-	frameTime = (double)DVD_TIME_BASE / fps;
 
 	directDecoder = new VideoDecoderDirect();
 	
 	decoder = (BaseVideoDecoder*)directDecoder;
-	if(!directDecoder->open(omxStreamInfo, omxClock, settings))
+	if(!directDecoder->open(omxStreamInfo, clockComponent, settings))
 	{
 
         delete directDecoder;

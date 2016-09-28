@@ -19,7 +19,6 @@ BaseVideoDecoder::BaseVideoDecoder()
 	extraData       = NULL;
 	extraSize       = 0;
 	isFirstFrame    = true;
-	omxClock        = NULL;
 	clockComponent  = NULL;
     doFilters       = false; 
     omxCodingType   = OMX_VIDEO_CodingUnused;
@@ -87,7 +86,6 @@ BaseVideoDecoder::~BaseVideoDecoder()
     }
     
     extraData       = NULL;
-    omxClock        = NULL;
     clockComponent  = NULL;
     isOpen          = false;
 

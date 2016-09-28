@@ -33,7 +33,6 @@ public:
     
     
     Component* clockComponent;
-    OMXClock* omxClock;
     
     Tunnel clockTunnel;
     Tunnel schedulerTunnel;

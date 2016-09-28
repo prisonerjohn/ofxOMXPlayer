@@ -187,7 +187,7 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
         {
             texturedPlayer = new VideoPlayerTextured();
         }
-        didVideoOpen = texturedPlayer->open(videoStreamInfo, clock, omxPlayerSettings, eglImage);
+        didVideoOpen = texturedPlayer->open(videoStreamInfo, clock->getComponent(), omxPlayerSettings, eglImage);
         videoPlayer = (BaseVideoPlayer*)texturedPlayer;
     }
     else
@@ -197,7 +197,7 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
             directPlayer = new VideoPlayerDirect();
         }
  
-        didVideoOpen = directPlayer->open(videoStreamInfo, clock, omxPlayerSettings);
+        didVideoOpen = directPlayer->open(videoStreamInfo, clock->getComponent(), omxPlayerSettings);
         videoPlayer = (BaseVideoPlayer*)directPlayer;
     }
     

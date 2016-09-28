@@ -81,7 +81,7 @@ void OMXAudioPlayer::unlockDecoder()
 }
 
 bool OMXAudioPlayer::open(StreamInfo& hints, 
-                          OMXClock *av_clock, 
+                          OMXClock *omxClock_, 
                           OMXReader *omx_reader,
                           std::string device)
 {
@@ -90,14 +90,14 @@ bool OMXAudioPlayer::open(StreamInfo& hints,
         close();
     }
 
-    if (!av_clock)
+    if (!omxClock_)
     {
         return false;
     }
 
 
     omxStreamInfo   = hints;
-    omxClock        = av_clock;
+    omxClock        = omxClock_;
     omxReader       = omx_reader;
     deviceName      = device;
     currentPTS      = DVD_NOPTS_VALUE;

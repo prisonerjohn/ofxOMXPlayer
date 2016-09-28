@@ -31,13 +31,10 @@ public:
     pthread_mutex_t m_lock;
     pthread_mutex_t m_lock_decoder; 
     
-    OMXClock* omxClock;
     float fps;
-    double frameTime;
     bool doAbort;
     bool doFlush;
     int speed;
-    double timeStampAdjustment; // time stamp of last flippage. used to play at a forced framerate
     unsigned int cachedSize;
     
     
@@ -77,5 +74,7 @@ public:
     virtual void close() = 0;
     
     ofxOMXPlayerSettings settings;
+    Component* clockComponent;
+
 
 };

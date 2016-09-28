@@ -37,14 +37,13 @@ void VideoDecoderTextured::resetFrameCounter()
 	renderComponent.resetFrameCounter();
 }
 
-bool VideoDecoderTextured::open(StreamInfo& streamInfo, OMXClock* clock, ofxOMXPlayerSettings& settings_, EGLImageKHR eglImage)
+bool VideoDecoderTextured::open(StreamInfo& streamInfo, Component* clockComponent_, ofxOMXPlayerSettings& settings_, EGLImageKHR eglImage)
 {
 	OMX_ERRORTYPE error   = OMX_ErrorNone;
 
     settings = settings_;
     doFilters = settings.enableFilters;
-    omxClock = clock;
-    clockComponent = omxClock->getComponent();
+    clockComponent = clockComponent_;
     
 	videoWidth  = streamInfo.width;
 	videoHeight = streamInfo.height;
