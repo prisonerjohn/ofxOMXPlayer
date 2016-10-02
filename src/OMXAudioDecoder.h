@@ -82,103 +82,102 @@ typedef struct tWAVEFORMATEXTENSIBLE
 
 class OMXAudioDecoder
 {
-	public:
-	
-        OMXAudioDecoder();
-        ~OMXAudioDecoder();
+public:
     
-		enum EEncoded
-		{
-			ENCODED_NONE = 0,
-			ENCODED_IEC61937_AC3,
-			ENCODED_IEC61937_EAC3,
-			ENCODED_IEC61937_DTS,
-			ENCODED_IEC61937_MPEG,
-			ENCODED_IEC61937_UNKNOWN,
-		};
-		
-		unsigned int getChunkLen();
-		//float GetDelay();
-		//float GetCacheTime();
-		float getCacheTotal();
-		unsigned int GetAudioRenderingLatency();
-		
-		bool init(string device,
-						enum PCMChannels *channelMap,
-		                StreamInfo& hints, 
-                        OMXClock *clock,
-						bool boostOnDownmix);
-
-		
-        bool deinit();
-		unsigned int addPackets(void* data, unsigned int len);
-		unsigned int addPackets(void* data, unsigned int len, double dts, double pts);
-		unsigned int GetSpace();
-		
-		bool pause();
-		bool Stop();
-		bool resume();
-
-		long getCurrentVolume() const;
-		void mute(bool bMute);
-		bool setCurrentVolume(long nVolume);
-		void setDynamicRangeCompression(long drc)
-		{
-			DRC = drc;
-		}
-		float getCurrentAttenuation()
-		{
-			return remapObject.getCurrentAttenuation();
-		}
-		void submitEOS();
-		bool EOS();
-
-		void flush();
-
-		void process();
-
-		bool setClock(OMXClock *clock);
-		void setCodingType(AVCodecID codec);
-
-		void printChannels(OMX_AUDIO_CHANNELTYPE eChannelMapping[]);
-		void printPCM(OMX_AUDIO_PARAM_PCMMODETYPE *pcm);
-
-	private:
-		bool          isInitialized;
-		bool          doPause;
-		bool          canPause;
-		long          currentVolume;
-		long          DRC;
-		bool          doNormalizeDownmix;
-		unsigned int  bytesPerSecond;
-		unsigned int  bufferLength;
-		unsigned int  chunkLength;
-		unsigned int  numInputChannels;
-		unsigned int  numOutputChannels;
-		unsigned int  numDownmixChannels;
-		unsigned int  m_BitsPerSample;
-		Component*    clockComponent;
-		OMXClock*     omxClock;
-
-        bool          doSetStartTime;
-		int           sampleSize;
-		bool          isFirstFrame;
-		int           sampleRate;
-		OMX_AUDIO_CODINGTYPE m_eEncoding;
-		uint8_t       *extraData;
-		int           extraSize;
-
-		OMX_AUDIO_PARAM_PCMMODETYPE pcm_output;
-		OMX_AUDIO_PARAM_PCMMODETYPE pcm_input;
-		OMX_AUDIO_PARAM_DTSTYPE     dtsParam;
-		WAVEFORMATEXTENSIBLE        waveFormat;
-
-	protected:
-		Component renderComponent;
-		Component mixerComponent;
-		Component decoderComponent;
-		Tunnel     clockTunnel;
-		Tunnel     mixerTunnel;
-		Tunnel     decoderTunnel;
-		CPCMRemap remapObject;
+    OMXAudioDecoder();
+    ~OMXAudioDecoder();
+    
+    enum EEncoded
+    {
+        ENCODED_NONE = 0,
+        ENCODED_IEC61937_AC3,
+        ENCODED_IEC61937_EAC3,
+        ENCODED_IEC61937_DTS,
+        ENCODED_IEC61937_MPEG,
+        ENCODED_IEC61937_UNKNOWN,
+    };
+    
+    unsigned int getChunkLen();
+    //float GetDelay();
+    //float GetCacheTime();
+    float getCacheTotal();
+    unsigned int GetAudioRenderingLatency();
+    
+    bool init(string device,
+              enum PCMChannels *channelMap,
+              StreamInfo& hints, 
+              Component *clockComponent_,
+              bool boostOnDownmix);
+    
+    
+    bool deinit();
+    unsigned int addPackets(void* data, unsigned int len);
+    unsigned int addPackets(void* data, unsigned int len, double dts, double pts);
+    unsigned int GetSpace();
+    
+    bool pause();
+    bool Stop();
+    bool resume();
+    
+    long getCurrentVolume() const;
+    void mute(bool bMute);
+    bool setCurrentVolume(long nVolume);
+    void setDynamicRangeCompression(long drc)
+    {
+        DRC = drc;
+    }
+    float getCurrentAttenuation()
+    {
+        return remapObject.getCurrentAttenuation();
+    }
+    void submitEOS();
+    bool EOS();
+    
+    void flush();
+    
+    void process();
+    
+    void setCodingType(AVCodecID codec);
+    
+    void printChannels(OMX_AUDIO_CHANNELTYPE eChannelMapping[]);
+    void printPCM(OMX_AUDIO_PARAM_PCMMODETYPE *pcm);
+    
+private:
+    bool          isInitialized;
+    bool          doPause;
+    bool          canPause;
+    long          currentVolume;
+    long          DRC;
+    bool          doNormalizeDownmix;
+    unsigned int  bytesPerSecond;
+    unsigned int  bufferLength;
+    unsigned int  chunkLength;
+    unsigned int  numInputChannels;
+    unsigned int  numOutputChannels;
+    unsigned int  numDownmixChannels;
+    unsigned int  m_BitsPerSample;
+    
+    bool          doSetStartTime;
+    int           sampleSize;
+    bool          isFirstFrame;
+    int           sampleRate;
+    OMX_AUDIO_CODINGTYPE m_eEncoding;
+    uint8_t       *extraData;
+    int           extraSize;
+    
+    OMX_AUDIO_PARAM_PCMMODETYPE pcm_output;
+    OMX_AUDIO_PARAM_PCMMODETYPE pcm_input;
+    OMX_AUDIO_PARAM_DTSTYPE     dtsParam;
+    WAVEFORMATEXTENSIBLE        waveFormat;
+    
+protected:
+    Component renderComponent;
+    Component mixerComponent;
+    Component decoderComponent;
+    Component*    clockComponent;
+    
+    Tunnel     clockTunnel;
+    Tunnel     mixerTunnel;
+    Tunnel     decoderTunnel;
+    CPCMRemap remapObject;
 };

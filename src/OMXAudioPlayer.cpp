@@ -30,7 +30,7 @@
 OMXAudioPlayer::OMXAudioPlayer()
 {
     isOpen          = false;
-    omxClock        = NULL;
+    clockComponent        = NULL;
     omxReader       = NULL;
     decoder         = NULL;
     doFlush         = false;
@@ -81,7 +81,7 @@ void OMXAudioPlayer::unlockDecoder()
 }
 
 bool OMXAudioPlayer::open(StreamInfo& hints, 
-                          OMXClock *omxClock_, 
+                          Component *clockComponent_, 
                           OMXReader *omx_reader,
                           std::string device)
 {
@@ -90,14 +90,9 @@ bool OMXAudioPlayer::open(StreamInfo& hints,
         close();
     }
 
-    if (!omxClock_)
-    {
-        return false;
-    }
-
 
     omxStreamInfo   = hints;
-    omxClock        = omxClock_;
+    clockComponent        = clockComponent_;
     omxReader       = omx_reader;
     deviceName      = device;
     currentPTS      = DVD_NOPTS_VALUE;
@@ -107,8 +102,6 @@ bool OMXAudioPlayer::open(StreamInfo& hints,
     audioCodecOMX   = NULL;
     channelMap      = NULL;
     speed           = DVD_PLAYSPEED_NORMAL;
-
-// omxClock->SetMasterClock(false);
 
     bool success  = openCodec();
     if(!success)
@@ -219,7 +212,7 @@ bool OMXAudioPlayer::decode(OMXPacket *pkt)
 #if 1
     if(!((int)decoder->GetSpace() > pkt->size))
     {
-        omxClock->sleep(10);
+       // omxClock->sleep(10);
     }
 
     if((int)decoder->GetSpace() > pkt->size)
@@ -410,14 +403,13 @@ bool OMXAudioPlayer::openDecoder()
     bool bAudioRenderOpen = false;
 
     decoder = new OMXAudioDecoder();
-    decoder->setClock(omxClock);
     stringstream ss;
     ss << deviceName.substr(4); 
     string name = ss.str();
     bAudioRenderOpen = decoder->init(name, 
                                        channelMap,
                                        omxStreamInfo, 
-                                       omxClock, 
+                                       clockComponent, 
                                        doBoostOnDownmix);
     
     
@@ -472,7 +464,7 @@ bool OMXAudioPlayer::EOS()
 
 void OMXAudioPlayer::WaitCompletion()
 {
-    //ofLogVerbose(__func__) << "OMXAudioPlayer::WaitCompletion";
+    ofLogVerbose(__func__) << "OMXAudioPlayer::WaitCompletion";
     if(!decoder)
     {
         return;
@@ -492,7 +484,7 @@ void OMXAudioPlayer::WaitCompletion()
             ofLog(OF_LOG_ERROR, "%s::%s - wait for eos timed out\n", "OMXAudioPlayer", __func__);
             break;
         }
-        omxClock->sleep(50);
+        //omxClock->sleep(50);
         nTimeOut -= 50;
     }
 }

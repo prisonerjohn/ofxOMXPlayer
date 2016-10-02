@@ -133,7 +133,7 @@ bool BaseVideoPlayer::decode(OMXPacket *pkt)
 	{
 		currentPTS = pts;
 	}
-    ofLogVerbose() << "currentPTS: " << currentPTS;
+    //ofLogVerbose(__func__) << "currentPTS: " << currentPTS;
 	//ofLog(OF_LOG_VERBOSE, "BaseVideoPlayer::Decode dts:%.0f pts:%.0f cur:%.0f, size:%d", pkt->dts, pkt->pts, currentPTS, pkt->size);
 	return decoder->decode(pkt->data, pkt->size, pts);
 }

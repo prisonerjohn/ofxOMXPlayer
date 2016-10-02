@@ -33,7 +33,7 @@ class OMXAudioPlayer : public OMXThread
 		pthread_cond_t  m_audio_cond;
 		pthread_mutex_t m_lock;
 		pthread_mutex_t m_lock_decoder;
-		OMXClock*           omxClock;
+		Component*           clockComponent;
 		OMXReader*          omxReader;
     
 		OMXAudioDecoder*    decoder;
@@ -64,7 +64,7 @@ class OMXAudioPlayer : public OMXThread
 		OMXAudioPlayer();
 		~OMXAudioPlayer();
 		bool open(StreamInfo& hints,
-                  OMXClock *omxClock_,
+                  Component *clockComponent_,
                   OMXReader *omx_reader,
 		          std::string device);
     

@@ -334,6 +334,8 @@ int VideoDecoderDirect::getCurrentFrame()
 void VideoDecoderDirect::resetFrameCounter()
 {
 	frameOffset = frameCounter;
+    EndOfFrameCounter = 0;
+
 }
 
 

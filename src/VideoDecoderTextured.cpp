@@ -34,6 +34,7 @@ int VideoDecoderTextured::getCurrentFrame()
 void VideoDecoderTextured::resetFrameCounter()
 {
 	//frameOffset = renderComponent.getCurrentFrame();
+    EndOfFrameCounter = 0;
 	renderComponent.resetFrameCounter();
 }
 

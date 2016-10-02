@@ -211,7 +211,7 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
             deviceString = "omx:local";
         }
         audioPlayer = new OMXAudioPlayer();
-        didAudioOpen = audioPlayer->open(audioStreamInfo, clock, &omxReader, deviceString);
+        didAudioOpen = audioPlayer->open(audioStreamInfo, clock->getComponent(), &omxReader, deviceString);
         if (didAudioOpen)
         {
             setVolume(omxPlayerSettings.initialVolume);
@@ -340,7 +340,6 @@ void ofxOMXPlayerEngine::process()
                         previousLoopOffset = loop_offset;
                         loopCounter++;                    
                         ofLog(OF_LOG_VERBOSE, "Loop offset : %8.02f\n", loop_offset / DVD_TIME_BASE);
-                        
                         onVideoLoop();
                         
                     }

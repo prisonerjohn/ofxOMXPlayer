@@ -110,7 +110,6 @@ OMXAudioDecoder::OMXAudioDecoder()
     numDownmixChannels= 0;
     m_BitsPerSample = 0;
     clockComponent = NULL;
-    omxClock = NULL;
     doSetStartTime = false;
     sampleSize = 0;
     isFirstFrame = true;
@@ -132,7 +131,7 @@ OMXAudioDecoder::~OMXAudioDecoder()
 bool OMXAudioDecoder::init(string device, 
                     enum PCMChannels *channelMap,
                     StreamInfo& hints, 
-                    OMXClock *clock,
+                    Component *clockComponent_,
                     bool boostOnDownmix)
 {
 
@@ -354,7 +353,7 @@ bool OMXAudioDecoder::init(string device,
          return false;
     }
     
-    clockComponent = omxClock->getComponent();
+    clockComponent = clockComponent_;
 
     clockTunnel.init(clockComponent, clockComponent->getInputPort(), &renderComponent, renderComponent.getInputPort()+1);
 
@@ -467,13 +466,6 @@ bool OMXAudioDecoder::deinit()
         return true;
     }
 
-    //TODO stop here?
-    if(omxClock)
-    {
-        //omxClock->stop();
-    }
-    
-    
     OMX_ERRORTYPE error = OMX_ErrorNone;
     
 
@@ -502,15 +494,8 @@ bool OMXAudioDecoder::deinit()
     bufferLength   = 0;
 
     
-    if(omxClock != NULL)
-    {
-        
-        //delete omxClock;
-        omxClock  = NULL;
-    }
-    
+
     clockComponent = NULL;
-    omxClock  = NULL;
 
     isInitialized = false;
 
@@ -920,20 +905,6 @@ bool OMXAudioDecoder::EOS()
     return renderComponent.EOS() && latency <= 0;
 }
 
-
-
-
-bool OMXAudioDecoder::setClock(OMXClock *clock)
-{
-    if(omxClock != NULL)
-    {
-        ofLogError(__func__) << "NULL CLOCK PASSED";
-        return false;
-    }
-
-    omxClock = clock;
-    return true;
-}
 
 void OMXAudioDecoder::setCodingType(AVCodecID codec)
 {

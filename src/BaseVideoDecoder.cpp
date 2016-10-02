@@ -205,7 +205,7 @@ bool BaseVideoDecoder::decode(uint8_t* demuxer_content, int iSize, double pts)
             {
                 //ofLogVerbose(__func__) << "OMX_BUFFERFLAG_ENDOFFRAME";
                 EndOfFrameCounter++;
-                ofLogVerbose(__func__) << "EndOfFrameCounter: " << EndOfFrameCounter;
+                //ofLogVerbose(__func__) << "EndOfFrameCounter: " << EndOfFrameCounter;
                 omxBuffer->nFlags |= OMX_BUFFERFLAG_ENDOFFRAME;
             }
 
