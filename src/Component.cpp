@@ -21,6 +21,8 @@ Component::Component()
 {
     doFreeHandle = true;
 	frameCounter = 0;
+    emptyBufferCounter = 0;
+    fillBufferCounter = 0;
 	frameOffset = 0;
 	inputPort  = 0;
 	outputPort = 0;
@@ -1326,6 +1328,9 @@ OMX_ERRORTYPE Component::EmptyBufferDoneCallback(OMX_HANDLETYPE hComponent,
                                                  OMX_PTR pAppData,
                                                  OMX_BUFFERHEADERTYPE* pBuffer)
 {
+    
+   
+
     OMX_ERRORTYPE error = OMX_ErrorNone;
     if(!pAppData)
     {
@@ -1333,7 +1338,8 @@ OMX_ERRORTYPE Component::EmptyBufferDoneCallback(OMX_HANDLETYPE hComponent,
     }
 
 	Component *component = static_cast<Component*>(pAppData);
-
+    //ofLogVerbose(__func__) << component->componentName << " emptyBufferCounter: " << component->emptyBufferCounter;
+    component->emptyBufferCounter++;
 	if(component->CustomEmptyBufferDoneHandler)
 	{
 		error = (*(component->CustomEmptyBufferDoneHandler))(hComponent, pAppData, pBuffer);
@@ -1358,6 +1364,7 @@ OMX_ERRORTYPE Component::FillBufferDoneCallback(OMX_HANDLETYPE hComponent,
                                                 OMX_PTR pAppData,
                                                 OMX_BUFFERHEADERTYPE* pBuffer)
 {
+
     OMX_ERRORTYPE error = OMX_ErrorNone;
 	if(!pAppData)
 	{
@@ -1365,6 +1372,9 @@ OMX_ERRORTYPE Component::FillBufferDoneCallback(OMX_HANDLETYPE hComponent,
 	}
 
 	Component* component = static_cast<Component*>(pAppData);
+    //ofLogVerbose(__func__) << component->componentName << " fillBufferCounter: " << component->fillBufferCounter;
+
+    component->fillBufferCounter++;
 	if(component->CustomFillBufferDoneHandler)
 	{
 		error = (*(component->CustomFillBufferDoneHandler))(hComponent, pAppData, pBuffer);

@@ -344,9 +344,10 @@ void ofxOMXPlayerEngine::process()
                                 loop_offset = videoPlayer->getCurrentPTS();
                             }
                         }
+                        ofLogVerbose(__func__) << "SEEKED";
                         if(getCurrentFrame()>=getTotalNumFrames())
                         {
-                            ofLogVerbose(__func__) << __LINE__ << getCurrentFrame() << " of " << getTotalNumFrames();
+                            ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
                             if(!doOnLoop)
                             {
                                 doOnLoop=true;
@@ -393,30 +394,11 @@ void ofxOMXPlayerEngine::process()
             }
         }
         
-        if (doLooping && getCurrentFrame()>=getTotalNumFrames())
+        if (doLooping && doOnLoop)
         {
             
             ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
-            if(doOnLoop)
-            {
-                ofLogVerbose(__func__) << "DO LOOP HERE";
-                //ofSleepMillis(5000);
-                //clock->sleep(5000);
-                
-                onVideoLoop();
-                
-                
-            }else
-            {
-                //ofLogVerbose(__func__) << "DON'T LOOP HERE";
-            }
-            
-            
-            if (videoPlayer) 
-            {
-                videoPlayer->resetFrameCounter();
-                startFrame = 0;
-            }
+            onVideoLoop();
         }
         if (hasAudio)
         {
@@ -732,8 +714,11 @@ void ofxOMXPlayerEngine::removeListener()
 
 void ofxOMXPlayerEngine::onVideoLoop()
 {
-    
+    ofLogVerbose(__func__) << endl << endl << endl << endl << endl << endl << endl << endl << endl << endl ;
     doOnLoop = false;
+    videoPlayer->resetFrameCounter();
+    startFrame = 0;
+    
     if (listener != NULL)
     {
         

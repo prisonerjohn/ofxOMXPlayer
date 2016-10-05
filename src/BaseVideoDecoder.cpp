@@ -31,6 +31,8 @@ BaseVideoDecoder::BaseVideoDecoder()
 #define LINE_STRING STRINGIZE(__LINE__)
 #define FUNCTION_LINE ofToString(__func__)+ofToString(LINE_STRING)
 
+
+
 BaseVideoDecoder::~BaseVideoDecoder() 
 {
 /*

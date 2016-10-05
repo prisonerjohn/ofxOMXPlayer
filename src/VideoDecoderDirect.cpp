@@ -2,6 +2,48 @@
 
 
 
+
+
+
+OMX_ERRORTYPE VideoDecoderDirect::onDecoderEmptyBufferDone(OMX_HANDLETYPE hComponent,
+                                                          OMX_PTR pAppData,
+                                                          OMX_BUFFERHEADERTYPE* pBuffer)
+{
+    ofLogVerbose(__func__) << "start";
+    Component *component = static_cast<Component*>(pAppData);
+    
+    //component->incrementFrameCounter();
+    
+    return OMX_ErrorNone;
+}
+
+
+
+OMX_ERRORTYPE VideoDecoderDirect::onRenderFillBufferDone(OMX_HANDLETYPE hComponent,
+                                                     OMX_PTR pAppData,
+                                                     OMX_BUFFERHEADERTYPE* pBuffer)
+{
+    ofLogVerbose(__func__) << "start";
+
+    Component *component = static_cast<Component*>(pAppData);
+    
+    component->incrementFrameCounter();
+    
+    return OMX_ErrorNone;
+}
+
+OMX_ERRORTYPE VideoDecoderDirect::onRenderEmptyBufferDone(OMX_HANDLETYPE hComponent,
+                                                         OMX_PTR pAppData,
+                                                         OMX_BUFFERHEADERTYPE* pBuffer)
+{
+    ofLogVerbose(__func__) << "start";
+    Component *component = static_cast<Component*>(pAppData);
+    
+    //component->incrementFrameCounter();
+    
+    return OMX_ErrorNone;
+}
+
 VideoDecoderDirect::VideoDecoderDirect()
 {
 
@@ -58,6 +100,7 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo, Component* clockComponent_
 	{
 		return false;
 	}
+    //decoderComponent.CustomEmptyBufferDoneHandler = &VideoDecoderDirect::onDecoderEmptyBufferDone;
 
 	componentName = "OMX.broadcom.video_render";
 	if(!renderComponent.init(componentName, OMX_IndexParamVideoInit))
@@ -258,7 +301,9 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo, Component* clockComponent_
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 	
-	
+    renderComponent.CustomFillBufferDoneHandler = &VideoDecoderDirect::onRenderFillBufferDone;
+    renderComponent.CustomEmptyBufferDoneHandler = &VideoDecoderDirect::onRenderEmptyBufferDone;
+
 	
 	error = renderComponent.setState(OMX_StateExecuting);
     OMX_TRACE(error);
@@ -288,9 +333,39 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo, Component* clockComponent_
 void VideoDecoderDirect::onUpdate(ofEventArgs& args)
 {
     //TODO: seems to cause hang on exit
-    if(!doUpdate) return;
+    //if(!doUpdate) return;
 	updateFrameCount();
 }
+void VideoDecoderDirect::updateFrameCount()
+{
+    if (!isOpen) {
+        return;
+    }
+    frameCounter = decoderComponent.emptyBufferCounter;
+    
+    OMX_ERRORTYPE error;
+    OMX_CONFIG_BRCMPORTSTATSTYPE stats;
+    
+    OMX_INIT_STRUCTURE(stats);
+    
+    stats.nPortIndex = renderComponent.getInputPort();
+    
+    error = renderComponent.getParameter(OMX_IndexConfigBrcmPortStats, &stats);
+    OMX_TRACE(error);
+    stringstream info;
+    info << "nImageCount: " << stats.nImageCount << endl;
+    info << "nBufferCount: " << stats.nBufferCount << endl;
+    info << "nFrameCount: " << stats.nFrameCount << endl;
+    info << "nFrameSkips: " << stats.nFrameSkips << endl;
+    info << "nEOS: " << stats.nEOS << endl;
+    info << "nMaxFrameSize: " << stats.nMaxFrameSize << endl;
+    //info << "nByteCount: " << nByteCount << endl;
+    //info << "nMaxTimeDelta: " << nMaxTimeDelta << endl;
+    info << "nCorruptMBs: " << stats.nCorruptMBs << endl;
+
+    ofLogVerbose(__func__) << info.str();
+}
+#if 0
 void VideoDecoderDirect::updateFrameCount()
 {
 	if (!isOpen) {
@@ -320,15 +395,20 @@ void VideoDecoderDirect::updateFrameCount()
 		 OMX_U32 nCorruptMBs;*/
 		//ofLogVerbose(__func__) << "nFrameCount: " << stats.nFrameCount;
 		frameCounter = stats.nFrameCount;
+        ofLogVerbose(__func__) << "frameCounter: " << frameCounter;
 	}else
 	{
 		ofLogError(__func__) << "renderComponent OMX_CONFIG_BRCMPORTSTATSTYPE fail: ";
 	}
 }
+#endif
 
 int VideoDecoderDirect::getCurrentFrame()
 {
-	return frameCounter - frameOffset;
+    //ofLogVerbose(__func__) << "frameCounter: " << frameCounter << " frameOffset: " << frameOffset;
+    
+    int result = frameCounter-frameOffset;
+    return result;
 }
 
 void VideoDecoderDirect::resetFrameCounter()

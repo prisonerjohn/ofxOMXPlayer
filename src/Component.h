@@ -107,6 +107,8 @@ public:
     
     bool doFreeHandle;
     
+    int emptyBufferCounter;
+    int fillBufferCounter;
 private:
     OMX_HANDLETYPE handle;
     string componentName;

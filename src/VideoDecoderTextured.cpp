@@ -8,7 +8,18 @@ VideoDecoderTextured::VideoDecoderTextured()
 }
 
 
-OMX_ERRORTYPE VideoDecoderTextured::onFillBufferDone(OMX_HANDLETYPE hComponent,
+OMX_ERRORTYPE VideoDecoderTextured::onDecoderEmptyBufferDone(OMX_HANDLETYPE hComponent,
+                                                           OMX_PTR pAppData,
+                                                           OMX_BUFFERHEADERTYPE* pBuffer)
+{
+    ofLogVerbose(__func__) << "";
+    return OMX_ErrorNone;
+
+
+}
+
+
+OMX_ERRORTYPE VideoDecoderTextured::onRenderFillBufferDone(OMX_HANDLETYPE hComponent,
                                OMX_PTR pAppData,
                                OMX_BUFFERHEADERTYPE* pBuffer)
 {
@@ -26,9 +37,16 @@ OMX_ERRORTYPE VideoDecoderTextured::onFillBufferDone(OMX_HANDLETYPE hComponent,
 	return didFillBuffer;
 }
 
+
+
+
+
 int VideoDecoderTextured::getCurrentFrame()
 {
-	
+    //ofLogVerbose(__func__) << "EndOfFrameCounter: " << EndOfFrameCounter;
+    
+    //int result =  frameCounter - frameOffset;
+    //return result;
 	return renderComponent.getCurrentFrame();
 }
 void VideoDecoderTextured::resetFrameCounter()
@@ -69,7 +87,8 @@ bool VideoDecoderTextured::open(StreamInfo& streamInfo, Component* clockComponen
 	{
 		return false;
 	}
-
+    //decoderComponent.CustomEmptyBufferDoneHandler = &VideoDecoderTextured::onDecoderEmptyBufferDone;
+    
 	componentName = "OMX.broadcom.egl_render";
 	if(!renderComponent.init(componentName, OMX_IndexParamVideoInit))
 	{
@@ -350,7 +369,7 @@ bool VideoDecoderTextured::open(StreamInfo& streamInfo, Component* clockComponen
 	}
 
 
-	renderComponent.CustomFillBufferDoneHandler = &VideoDecoderTextured::onFillBufferDone;
+	renderComponent.CustomFillBufferDoneHandler = &VideoDecoderTextured::onRenderFillBufferDone;
 	error = renderComponent.setState(OMX_StateExecuting);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;

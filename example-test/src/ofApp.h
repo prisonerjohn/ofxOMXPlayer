@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "TexturedLoopTest.h"
 #include "TexturedStreamTest.h"
+#include "DirectLoopTest.h"
 
 #include "TerminalListener.h"
 #include "PlaybackTestRunner.h"
@@ -29,14 +30,22 @@ public:
         doNextTest = false;
         
         consoleListener.setup(this);
-
+        
         TexturedLoopTest* texturedLoopTest = new TexturedLoopTest();
         texturedLoopTest->setup("TexturedLoopTest");
         
         TexturedStreamTest* texturedStreamTest = new TexturedStreamTest();
         texturedStreamTest->setup("TexturedStreamTest");
         
+        DirectLoopTest* directLoopTest = new DirectLoopTest();
+        directLoopTest->setup("DirectLoopTest");
+        
+        
+        tests.push_back(directLoopTest);
         tests.push_back(texturedLoopTest);
+
+        
+        
         tests.push_back(texturedStreamTest);
         
         currentTestID = 0;
@@ -44,7 +53,7 @@ public:
         currentTest->listener = this;
         currentTest->start();
         playbackTestRunner.test = currentTest;
-  
+        
     }
     
     
@@ -72,7 +81,6 @@ public:
             currentTest = tests[currentTestID];
             currentTest->listener = this;
             ofLogVerbose(__func__) << "STARTING NEW TEST: " << currentTest->name;
-            ofSleepMillis(2000);
             
             currentTest->start();
             
@@ -85,7 +93,7 @@ public:
         
         playbackTestRunner.update();
     }
-   
+    
     
     
     
