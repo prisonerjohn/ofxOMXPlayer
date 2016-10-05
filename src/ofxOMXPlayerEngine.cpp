@@ -276,6 +276,14 @@ void ofxOMXPlayerEngine::process()
     {
         //ofLogVerbose(__func__) << OMXReader::packetsAllocated << " packetsFreed: " << OMXReader::packetsFreed << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed);
         ofLogVerbose(__func__) << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed) << " " << getCurrentFrame() << " of " << getTotalNumFrames();
+        if(getCurrentFrame() && getCurrentFrame()>=getTotalNumFrames())
+        {
+            if(doLooping)
+            {
+                ofLogVerbose() << "WE SHOULD LOOP";
+                doOnLoop = true;
+            }
+        }
         if(!packet)
         {
             packet = omxReader.Read();
@@ -388,7 +396,7 @@ void ofxOMXPlayerEngine::process()
         if (doLooping && getCurrentFrame()>=getTotalNumFrames())
         {
             
-            ofLogVerbose(__func__) << __LINE__ << getCurrentFrame() << " of " << getTotalNumFrames();
+            ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
             if(doOnLoop)
             {
                 ofLogVerbose(__func__) << "DO LOOP HERE";
