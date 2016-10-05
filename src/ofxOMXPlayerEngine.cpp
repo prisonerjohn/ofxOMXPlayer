@@ -336,25 +336,32 @@ void ofxOMXPlayerEngine::process()
                                 loop_offset = videoPlayer->getCurrentPTS();
                             }
                         }
-                        if (previousLoopOffset != loop_offset)
+                        if(getCurrentFrame()>=getTotalNumFrames())
                         {
-                            
-                            previousLoopOffset = loop_offset;
-                            loopCounter++;                    
-                            ofLog(OF_LOG_VERBOSE, "Loop offset : %8.02f\n", loop_offset / DVD_TIME_BASE);
-                            doOnLoop = true;
-                            //onVideoLoop();
-                            
-                        }
-                        if (omxReader.wasFileRewound)
-                        {
-                            doOnLoop = true;
-                            omxReader.wasFileRewound = false;
-                            //onVideoLoop();
+                            ofLogVerbose(__func__) << __LINE__ << getCurrentFrame() << " of " << getTotalNumFrames();
+                            if(!doOnLoop)
+                            {
+                                doOnLoop=true;
+                                
+                                if (previousLoopOffset != loop_offset)
+                                {
+                                    previousLoopOffset = loop_offset;
+                                    loopCounter++;                    
+                                    ofLog(OF_LOG_VERBOSE, "Loop offset : %8.02f\n", loop_offset / DVD_TIME_BASE);
+                                    doOnLoop = true;
+                                    //onVideoLoop();
+                                    
+                                }
+                                if (omxReader.wasFileRewound)
+                                {
+                                    doOnLoop = true;
+                                    omxReader.wasFileRewound = false;
+                                    //onVideoLoop();
+                                }
+
+                            }
                         }
                     }
-                    
-                    
                 }
                 else
                 {
@@ -377,24 +384,24 @@ void ofxOMXPlayerEngine::process()
                 
             }
         }
-        if(doOnLoop)
-        {
-            ofLogVerbose(__func__) << "DO LOOP HERE";
-            //ofSleepMillis(5000);
-            //clock->sleep(5000);
-            
-            onVideoLoop();
-            
-            
-        }else
-        {
-            //ofLogVerbose(__func__) << "DON'T LOOP HERE";
-        }
+        
         if (doLooping && getCurrentFrame()>=getTotalNumFrames())
         {
             
             ofLogVerbose(__func__) << __LINE__ << getCurrentFrame() << " of " << getTotalNumFrames();
-
+            if(doOnLoop)
+            {
+                ofLogVerbose(__func__) << "DO LOOP HERE";
+                //ofSleepMillis(5000);
+                //clock->sleep(5000);
+                
+                onVideoLoop();
+                
+                
+            }else
+            {
+                //ofLogVerbose(__func__) << "DON'T LOOP HERE";
+            }
             
             
             if (videoPlayer) 
