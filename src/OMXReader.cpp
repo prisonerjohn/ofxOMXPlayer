@@ -2,8 +2,9 @@
 #include "XMemUtils.h"
 
 
-
-
+int OMXReader::packetCounter = 0;
+int OMXReader::packetsAllocated= 0;
+int OMXReader::packetsFreed= 0;
 OMXReader::OMXReader()
 {
     isOpen = false;
@@ -909,20 +910,30 @@ bool OMXReader::getIsEOF()
     return isEOF;
 }
 
+
+#define READER(x)  ofLogVerbose(__func__) << __LINE__ << x;
+
+
 //__attribute__((always_inline))
-void OMXReader::freePacket(OMXPacket *pkt)
+void OMXReader::freePacket(OMXPacket *pkt, string caller)
 {
     if(pkt)
     {
+        //ofLogVerbose(__func__) << "id: " << pkt->id;
         if(pkt->data)
+        {
             free(pkt->data);
+        }
         free(pkt);
+        OMXReader::packetsFreed++;
+        //ofLogVerbose(__func__) << "from: " << caller << " packetsAllocated: " << OMXReader::packetsAllocated << " packetsFreed: " << OMXReader::packetsFreed << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed);
     }
 }
 
 OMXPacket *OMXReader::allocPacket(int size)
 {
     OMXPacket *pkt = new OMXPacket();
+    
     pkt->data = new uint8_t[size + FF_INPUT_BUFFER_PADDING_SIZE];
     //memset(pkt->data + size, 0, FF_INPUT_BUFFER_PADDING_SIZE);
     pkt->size = size;
@@ -930,7 +941,11 @@ OMXPacket *OMXReader::allocPacket(int size)
     pkt->pts  = DVD_NOPTS_VALUE;
     pkt->now  = DVD_NOPTS_VALUE;
     pkt->duration = DVD_NOPTS_VALUE;
-    
+    pkt->id = OMXReader::packetCounter;
+    //READER(OMXReader::packetCounter);
+    OMXReader::packetCounter++;
+    OMXReader::packetsAllocated++;
+    //ofLogVerbose(__func__) << " packetsAllocated: " << OMXReader::packetsAllocated << " packetsFreed: " << OMXReader::packetsFreed << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed);
     return pkt;
 }
 

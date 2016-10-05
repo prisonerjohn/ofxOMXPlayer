@@ -25,7 +25,7 @@
 #include <unistd.h>
 #include "XMemUtils.h"
 
-#define MAX_DATA_SIZE    3 * 1024 * 1024
+#define MAX_DATA_SIZE    1 * 1024 * 1024
 
 OMXAudioPlayer::OMXAudioPlayer()
 {
@@ -289,7 +289,7 @@ void OMXAudioPlayer::process()
         lock();
         if(doFlush && omxPacket)
         {
-            OMXReader::freePacket(omxPacket);
+            OMXReader::freePacket(omxPacket, __func__);
             omxPacket = NULL;
             doFlush = false;
         }
@@ -304,13 +304,13 @@ void OMXAudioPlayer::process()
         lockDecoder();
         if(doFlush && omxPacket)
         {
-            OMXReader::freePacket(omxPacket);
+            OMXReader::freePacket(omxPacket, __func__);
             omxPacket = NULL;
             doFlush = false;
         }
         else if(omxPacket && decode(omxPacket))
         {
-            OMXReader::freePacket(omxPacket);
+            OMXReader::freePacket(omxPacket, __func__);
             omxPacket = NULL;
         }
         unlockDecoder();
@@ -318,7 +318,7 @@ void OMXAudioPlayer::process()
 
     if(omxPacket)
     {
-        OMXReader::freePacket(omxPacket);
+        OMXReader::freePacket(omxPacket, __func__);
     }
 }
 
@@ -332,7 +332,7 @@ void OMXAudioPlayer::flush()
     {
         OMXPacket *pkt = packets.front();
         packets.pop_front();
-        OMXReader::freePacket(pkt);
+        OMXReader::freePacket(pkt, __func__);
     }
     currentPTS = DVD_NOPTS_VALUE;
     cachedSize = 0;
@@ -358,15 +358,23 @@ bool OMXAudioPlayer::addPacket(OMXPacket *pkt)
     {
         return ret;
     }
-
-    if((cachedSize + pkt->size) < MAX_DATA_SIZE)
+    
+    
+    int targetSize = cachedSize + pkt->size;
+    
+    if(targetSize < MAX_DATA_SIZE)
     {
         lock();
+        
         cachedSize += pkt->size;
+       // ofLogVerbose(__func__) << "pkt->size: " << pkt->size << " cachedSize: " << cachedSize;
         packets.push_back(pkt);
         unlock();
         ret = true;
         pthread_cond_broadcast(&m_packet_cond);
+    }else
+    {
+        //ofLogError(__func__) << "targetSize: " << targetSize << " MAX_DATA_SIZE: " << MAX_DATA_SIZE << " packets.size: " << packets.size() << " CACHE FULL";
     }
 
     return ret;

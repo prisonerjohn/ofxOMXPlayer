@@ -39,6 +39,7 @@ class OMXReader;
 
 typedef struct OMXPacket
 {
+    int id;
     double    pts; // pts in DVD_TIME_BASE
     double    dts; // dts in DVD_TIME_BASE
     double    now; // dts in DVD_TIME_BASE
@@ -75,6 +76,9 @@ typedef struct OMXStream
 class OMXReader
 {
 public:
+    static int packetCounter;
+    static int packetsAllocated;
+    static int packetsFreed;
     OMXReader();
     ~OMXReader();
     bool open(std::string filename, bool doSkipAvProbe);
@@ -114,7 +118,7 @@ public:
     {
         return omxChapters[(chapter > MAX_OMX_CHAPTERS) ? MAX_OMX_CHAPTERS : chapter];
     };
-    static void freePacket(OMXPacket *pkt);
+    static void freePacket(OMXPacket *pkt, string caller="UNDEFINED");
     static OMXPacket* allocPacket(int size);
     void setSpeed(int iSpeed);
     int getSpeed()

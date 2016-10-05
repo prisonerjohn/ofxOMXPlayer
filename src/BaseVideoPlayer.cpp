@@ -151,7 +151,7 @@ void BaseVideoPlayer::flush()
 	{
 		OMXPacket *pkt = packets.front();
 		packets.pop_front();
-		OMXReader::freePacket(pkt);
+		OMXReader::freePacket(pkt, __func__);
 
 	}
 
@@ -183,7 +183,9 @@ bool BaseVideoPlayer::addPacket(OMXPacket *pkt)
 		return ret;
 	}
 
-	if((cachedSize + pkt->size) < MAX_DATA_SIZE)
+    
+    int targetSize = cachedSize + pkt->size;
+	if(targetSize < MAX_DATA_SIZE)
 	{
 		lock();
 			cachedSize += pkt->size;
@@ -191,7 +193,10 @@ bool BaseVideoPlayer::addPacket(OMXPacket *pkt)
 		unlock();
 		ret = true;
 		pthread_cond_broadcast(&m_packet_cond);
-	}
+    }else
+    {
+        //ofLogError(__func__) << "targetSize: " << targetSize << " MAX_DATA_SIZE: " << MAX_DATA_SIZE << " packets.size: " << packets.size() << " CACHE FULL";
+    }
 
 	return ret;
 }
@@ -223,7 +228,7 @@ void BaseVideoPlayer::process()
 		lock();
 		if(doFlush && omxPacket)
 		{
-			OMXReader::freePacket(omxPacket);
+			OMXReader::freePacket(omxPacket, __func__);
 			omxPacket = NULL;
 			doFlush = false;
 		}
@@ -242,7 +247,7 @@ void BaseVideoPlayer::process()
 		lockDecoder();
 		if(doFlush && omxPacket)
 		{
-			OMXReader::freePacket(omxPacket);
+			OMXReader::freePacket(omxPacket, __func__);
 			omxPacket = NULL;
 			doFlush = false;
 		}
@@ -251,7 +256,7 @@ void BaseVideoPlayer::process()
 			if(omxPacket && decode(omxPacket))
 			{
 				
-				OMXReader::freePacket(omxPacket);
+				OMXReader::freePacket(omxPacket, __func__);
 				omxPacket = NULL;
 			}
 		}
@@ -263,7 +268,7 @@ void BaseVideoPlayer::process()
 	
 	if(omxPacket)
 	{
-		OMXReader::freePacket(omxPacket);
+		OMXReader::freePacket(omxPacket, __func__);
 	}
 }
 

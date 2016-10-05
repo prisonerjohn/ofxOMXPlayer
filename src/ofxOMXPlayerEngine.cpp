@@ -265,12 +265,17 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
     }
 }
 
+//#define ENGINE(x)  ofLogVerbose(__func__) << __LINE__ << x;
+
+bool doOnLoop = false;
+#define ENGINE(x) 
 #pragma mark threading
 void ofxOMXPlayerEngine::process()
 {
     while (!doStop)
     {
-        
+        //ofLogVerbose(__func__) << OMXReader::packetsAllocated << " packetsFreed: " << OMXReader::packetsFreed << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed);
+        ofLogVerbose(__func__) << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed) << " " << getCurrentFrame() << " of " << getTotalNumFrames();
         if(!packet)
         {
             packet = omxReader.Read();
@@ -300,81 +305,98 @@ void ofxOMXPlayerEngine::process()
                 }
             }
             
-        }
-        
-        if (omxReader.getIsEOF() && !packet && isCacheEmpty)
-        {
-            videoPlayer->submitEOS();
-            
-        }
-        
-        if(doLooping && omxReader.getIsEOF() && !packet)
-        {
-            
-            
-            if (isCacheEmpty)
+            if (omxReader.getIsEOF() && isCacheEmpty)
             {
-                if(omxReader.isStream)
+                videoPlayer->submitEOS();
+                
+            }
+            
+            
+            if(doLooping && omxReader.getIsEOF())
+            {
+                if (isCacheEmpty)
                 {
-                    doRestart = true;
-                }else
-                {
-                    omxReader.SeekTime(0 * 1000.0f, AVSEEK_FLAG_BACKWARD, &startpts);
-                    
-                    packet = omxReader.Read();
-                    
-                    if(hasAudio)
+                    if(omxReader.isStream)
                     {
-                        loop_offset = audioPlayer->getCurrentPTS();
-                    }
-                    else
+                        doRestart = true;
+                    }else
                     {
-                        if(hasVideo)
+                        omxReader.SeekTime(0 * 1000.0f, AVSEEK_FLAG_BACKWARD, &startpts);
+                        
+                        packet = omxReader.Read();
+                        
+                        if(hasAudio)
                         {
-                            loop_offset = videoPlayer->getCurrentPTS();
+                            loop_offset = audioPlayer->getCurrentPTS();
+                        }
+                        else
+                        {
+                            if(hasVideo)
+                            {
+                                loop_offset = videoPlayer->getCurrentPTS();
+                            }
+                        }
+                        if (previousLoopOffset != loop_offset)
+                        {
+                            
+                            previousLoopOffset = loop_offset;
+                            loopCounter++;                    
+                            ofLog(OF_LOG_VERBOSE, "Loop offset : %8.02f\n", loop_offset / DVD_TIME_BASE);
+                            doOnLoop = true;
+                            //onVideoLoop();
+                            
+                        }
+                        if (omxReader.wasFileRewound)
+                        {
+                            doOnLoop = true;
+                            omxReader.wasFileRewound = false;
+                            //onVideoLoop();
                         }
                     }
-                    if (previousLoopOffset != loop_offset)
-                    {
-                        
-                        previousLoopOffset = loop_offset;
-                        loopCounter++;                    
-                        ofLog(OF_LOG_VERBOSE, "Loop offset : %8.02f\n", loop_offset / DVD_TIME_BASE);
-                        onVideoLoop();
-                        
-                    }
-                    if (omxReader.wasFileRewound)
-                    {
-                        omxReader.wasFileRewound = false;
-                        onVideoLoop();
-                    }
+                    
+                    
                 }
-                
+                else
+                {
+                    clock->sleep(10);
+                    ENGINE(" continue");
+                    continue;
+                }
                 
             }
             else
             {
-                clock->sleep(10);
-                continue;
-            }
-            
-        }
-        else
-        {
-            if (!doLooping && omxReader.getIsEOF() && !packet && isCacheEmpty)
-            {
-                if (videoPlayer->EOS())
+                if (!doLooping && omxReader.getIsEOF() && isCacheEmpty)
                 {
-                    onVideoEnd();
-                    break;
+                    if (videoPlayer->EOS())
+                    {
+                        onVideoEnd();
+                        break;
+                    }
                 }
+                
             }
-            
         }
-        
-        
+        if(doOnLoop)
+        {
+            ofLogVerbose(__func__) << "DO LOOP HERE";
+            //ofSleepMillis(5000);
+            //clock->sleep(5000);
+            
+            onVideoLoop();
+            
+            
+        }else
+        {
+            //ofLogVerbose(__func__) << "DON'T LOOP HERE";
+        }
         if (doLooping && getCurrentFrame()>=getTotalNumFrames())
         {
+            
+            ofLogVerbose(__func__) << __LINE__ << getCurrentFrame() << " of " << getTotalNumFrames();
+
+            
+            
             if (videoPlayer) 
             {
                 videoPlayer->resetFrameCounter();
@@ -390,41 +412,44 @@ void ofxOMXPlayerEngine::process()
             }
         }
         
-        
-        if(hasVideo && packet && omxReader.isActive(OMXSTREAM_VIDEO, packet->stream_index))
+        if(packet)
         {
-            if(videoPlayer->addPacket(packet))
+            ENGINE(" has packet");
+            if(hasVideo && omxReader.isActive(OMXSTREAM_VIDEO, packet->stream_index))
             {
-                packet = NULL;
+                if(videoPlayer->addPacket(packet))
+                {
+                    packet = NULL;
+                }
+                else
+                {
+                    clock->sleep(10);
+                }
+                
+            }
+            else if(hasAudio && packet->codec_type == AVMEDIA_TYPE_AUDIO)
+            {
+                if(audioPlayer->addPacket(packet))
+                {
+                    packet = NULL;
+                }
+                else
+                {
+                    clock->sleep(10);
+                }
             }
             else
             {
-                clock->sleep(10);
-            }
-            
-        }
-        else if(hasAudio && packet && packet->codec_type == AVMEDIA_TYPE_AUDIO)
-        {
-            if(audioPlayer->addPacket(packet))
-            {
+                ENGINE(" freeing packet");
+                omxReader.freePacket(packet, __func__);
                 packet = NULL;
             }
-            else
-            {
-                clock->sleep(10);
-            }
-        }
-        else
+        }else
         {
-            if(packet)
-            {
-                omxReader.freePacket(packet);
-                packet = NULL;
-            }else {
-                clock->sleep(10);
-            }
-            
+            ENGINE(" no packet, sleeping");
+            clock->sleep(10);
         }
+      
     }
 }
 
@@ -693,7 +718,7 @@ void ofxOMXPlayerEngine::removeListener()
 void ofxOMXPlayerEngine::onVideoLoop()
 {
     
-    
+    doOnLoop = false;
     if (listener != NULL)
     {
         
@@ -753,7 +778,7 @@ ofxOMXPlayerEngine::~ofxOMXPlayerEngine()
     
     if(packet)
     {
-        omxReader.freePacket(packet);
+        omxReader.freePacket(packet, __func__);
         packet = NULL;
     }
     
