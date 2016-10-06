@@ -46,7 +46,7 @@ public:
     void process();
     void flush();
     
-    bool addPacket(OMXPacket *pkt);
+    bool addPacket(OMXPacket*);
     
 
     bool closeDecoder();
@@ -78,9 +78,4 @@ public:
     OMXClock* omxClock;
     
     void adjustFPS();
-    int currentFrameNumber;
-    uint64_t videoStartTime;
-    uint64_t videoEndTime;
-    float timePerFrame;
-    float totalMovieTime;
 };

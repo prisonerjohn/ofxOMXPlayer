@@ -2,62 +2,18 @@
 
 
 
-
-
-
-OMX_ERRORTYPE VideoDecoderDirect::onDecoderEmptyBufferDone(OMX_HANDLETYPE hComponent,
-                                                          OMX_PTR pAppData,
-                                                          OMX_BUFFERHEADERTYPE* pBuffer)
-{
-    ofLogVerbose(__func__) << "start";
-    Component *component = static_cast<Component*>(pAppData);
-    
-    //component->incrementFrameCounter();
-    
-    return OMX_ErrorNone;
-}
-
-
-
-OMX_ERRORTYPE VideoDecoderDirect::onRenderFillBufferDone(OMX_HANDLETYPE hComponent,
-                                                     OMX_PTR pAppData,
-                                                     OMX_BUFFERHEADERTYPE* pBuffer)
-{
-    ofLogVerbose(__func__) << "start";
-
-    Component *component = static_cast<Component*>(pAppData);
-    
-    component->incrementFrameCounter();
-    
-    return OMX_ErrorNone;
-}
-
-OMX_ERRORTYPE VideoDecoderDirect::onRenderEmptyBufferDone(OMX_HANDLETYPE hComponent,
-                                                         OMX_PTR pAppData,
-                                                         OMX_BUFFERHEADERTYPE* pBuffer)
-{
-    ofLogVerbose(__func__) << "start";
-    Component *component = static_cast<Component*>(pAppData);
-    
-    //component->incrementFrameCounter();
-    
-    return OMX_ErrorNone;
-}
-
 VideoDecoderDirect::VideoDecoderDirect()
 {
 
 	doHDMISync   = false;
 	frameCounter = 0;
 	frameOffset = 0;
-    doUpdate = false;
 }
 
 
 VideoDecoderDirect::~VideoDecoderDirect()
 {
-	ofRemoveListener(ofEvents().update, this, &VideoDecoderDirect::onUpdate);
-	ofLogVerbose(__func__) << "removed update listener";
+
 }
 
 bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxOMXPlayerSettings& settings_)
@@ -101,7 +57,6 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
 	{
 		return false;
 	}
-    //decoderComponent.CustomEmptyBufferDoneHandler = &VideoDecoderDirect::onDecoderEmptyBufferDone;
 
 	componentName = "OMX.broadcom.video_render";
 	if(!renderComponent.init(componentName, OMX_IndexParamVideoInit))
@@ -302,10 +257,6 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 	
-    renderComponent.CustomFillBufferDoneHandler = &VideoDecoderDirect::onRenderFillBufferDone;
-    renderComponent.CustomEmptyBufferDoneHandler = &VideoDecoderDirect::onRenderEmptyBufferDone;
-
-	
 	error = renderComponent.setState(OMX_StateExecuting);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
@@ -323,96 +274,13 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
 	display.setup(&renderComponent, streamInfo, settings);
 
 	isFirstFrame   = true;
-    doUpdate = true;
-    ofAddListener(ofEvents().update, this, &VideoDecoderDirect::onUpdate);
     
 	// start from assuming all recent frames had valid pts
 	validHistoryPTS = ~0;
 	return true;
 }
 
-void VideoDecoderDirect::onUpdate(ofEventArgs& args)
-{
-    //TODO: seems to cause hang on exit
-    //if(!doUpdate) return;
-	updateFrameCount();
-}
-void VideoDecoderDirect::updateFrameCount()
-{
-    if (!isOpen) {
-        return;
-    }
-    frameCounter = decoderComponent.emptyBufferCounter;
-    
-    OMX_ERRORTYPE error;
-    OMX_CONFIG_BRCMPORTSTATSTYPE stats;
-    
-    OMX_INIT_STRUCTURE(stats);
-    
-    stats.nPortIndex = renderComponent.getInputPort();
-    
-    error = renderComponent.getParameter(OMX_IndexConfigBrcmPortStats, &stats);
-    OMX_TRACE(error);
-#if 0
-    stringstream info;
-    info << "nImageCount: " << stats.nImageCount << endl;
-    info << "nBufferCount: " << stats.nBufferCount << endl;
-    info << "nFrameCount: " << stats.nFrameCount << endl;
-    info << "nFrameSkips: " << stats.nFrameSkips << endl;
-    info << "nEOS: " << stats.nEOS << endl;
-    info << "nMaxFrameSize: " << stats.nMaxFrameSize << endl;
-    //info << "nByteCount: " << nByteCount << endl;
-    //info << "nMaxTimeDelta: " << nMaxTimeDelta << endl;
-    info << "nCorruptMBs: " << stats.nCorruptMBs << endl;
 
-    ofLogVerbose(__func__) << info.str();
-#endif
-    /*
-    double currentMediaTime = omxClock->getMediaTime();
-    int numFrames = 800;
-    int fps = 24;
-    int totalSeconds = numFrames*24;
-    int currentPosition = DVD_MSEC_TO_TIME(currentMediaTime)*totalSeconds;
-    ofLogVerbose(__func__) << "currentPosition: " << currentPosition;*/
-    
-}
-#if 0
-void VideoDecoderDirect::updateFrameCount()
-{
-	if (!isOpen) {
-		return;
-	}
-	OMX_ERRORTYPE error;
-	OMX_CONFIG_BRCMPORTSTATSTYPE stats;
-	
-	OMX_INIT_STRUCTURE(stats);
-	
-	stats.nPortIndex = renderComponent.getInputPort();
-	
-	error = renderComponent.getParameter(OMX_IndexConfigBrcmPortStats, &stats);
-    OMX_TRACE(error);
-	if (error == OMX_ErrorNone)
-	{
-		/*OMX_U32 nImageCount;
-		 OMX_U32 nBufferCount;
-		 OMX_U32 nFrameCount;
-		 OMX_U32 nFrameSkips;
-		 OMX_U32 nDiscards;
-		 OMX_U32 nEOS;
-		 OMX_U32 nMaxFrameSize;
-		 
-		 OMX_TICKS nByteCount;
-		 OMX_TICKS nMaxTimeDelta;
-		 OMX_U32 nCorruptMBs;*/
-		//ofLogVerbose(__func__) << "nFrameCount: " << stats.nFrameCount;
-		frameCounter = stats.nFrameCount;
-        ofLogVerbose(__func__) << "frameCounter: " << frameCounter;
-	}else
-	{
-		ofLogError(__func__) << "renderComponent OMX_CONFIG_BRCMPORTSTATSTYPE fail: ";
-	}
-}
-#endif
 
 int VideoDecoderDirect::getCurrentFrame()
 {

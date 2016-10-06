@@ -27,8 +27,6 @@ BaseVideoPlayer::BaseVideoPlayer()
 	pthread_mutex_init(&m_lock, NULL);
 	pthread_mutex_init(&m_lock_decoder, NULL);
 	validHistoryPTS = 0;
-    currentFrameNumber = 0;
-    videoStartTime = 0;
 }
 
 BaseVideoPlayer::~BaseVideoPlayer()
@@ -134,38 +132,7 @@ void BaseVideoPlayer::unlockDecoder()
 {
 	pthread_mutex_unlock(&m_lock_decoder);
 }
-#if 0
-bool BaseVideoPlayer::decode(OMXPacket *pkt)
-{
-	if(!pkt)
-	{
-		return false;
-	}
-	
-	validHistoryPTS = (validHistoryPTS << 1) | (pkt->pts != DVD_NOPTS_VALUE);
-	double pts = pkt->pts;
-	if(pkt->pts == DVD_NOPTS_VALUE && (currentPTS == DVD_NOPTS_VALUE || count_bits(validHistoryPTS & 0xffff) < 4))
-	{
-        ofLogVerbose(__func__) << "OVERRIDING pts";
-		pts = pkt->dts;
-	}
-	    
-	if(pts != DVD_NOPTS_VALUE)
-	{
-        //ofLogVerbose(__func__) << "SETTING currentPTS";
-		currentPTS = pts;
-	}
-    
-    //int64_t framerate = floor( 1.00 / ( ( double )pkt->time_base.num / ( double )pkt->time_base.den ) );
-    //int64_t fnumber = av_rescale_q( pkt->av_pts, pkt->time_base, { 1, 24 } );
-    //ofLogVerbose(__func__) << "fnumber: " << fnumber;
-    
-    
-    //ofLogVerbose(__func__) << "currentPTS: " << currentPTS;
-	//ofLog(OF_LOG_VERBOSE, "BaseVideoPlayer::Decode dts:%.0f pts:%.0f cur:%.0f, size:%d", pkt->dts, pkt->pts, currentPTS, pkt->size);
-	return decoder->decode(pkt->data, pkt->size, pts);
-}
-#endif
+
 
 bool BaseVideoPlayer::decode(OMXPacket *omxPacket)
 {
@@ -180,14 +147,6 @@ bool BaseVideoPlayer::decode(OMXPacket *omxPacket)
         //ofLogVerbose(__func__) << "SETTING currentPTS";
         currentPTS = omxPacket->pts;
     }
-    
-    //int64_t framerate = floor( 1.00 / ( ( double )pkt->time_base.num / ( double )pkt->time_base.den ) );
-    int64_t fnumber = av_rescale_q( omxPacket->av_pts, omxPacket->time_base, { 1, omxStreamInfo.fps } );
-    ofLogVerbose(__func__) << "fpsrate: " << omxStreamInfo.fpsrate << " FRAME NUMBER: " << fnumber;
-    
-    
-    //ofLogVerbose(__func__) << "currentPTS: " << currentPTS;
-    //ofLog(OF_LOG_VERBOSE, "BaseVideoPlayer::Decode dts:%.0f pts:%.0f cur:%.0f, size:%d", pkt->dts, pkt->pts, currentPTS, pkt->size);
     return decoder->decode(omxPacket);
 }
 

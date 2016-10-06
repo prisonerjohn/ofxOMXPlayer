@@ -20,7 +20,6 @@ public:
     int getCurrentFrame();
     void resetFrameCounter();
     
-    StreamInfo streamInfo;
     bool doDeinterlace;
     bool doHDMISync;    
     OMXDisplay display;
@@ -28,12 +27,7 @@ public:
     {
         return &display;
     }
-    bool doUpdate;
     
-    static OMX_ERRORTYPE onRenderFillBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
-    static OMX_ERRORTYPE onRenderEmptyBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
-    static OMX_ERRORTYPE onDecoderEmptyBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
-
 
 private:
     int frameCounter;
