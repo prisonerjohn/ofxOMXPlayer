@@ -40,15 +40,17 @@ class OMXReader;
 typedef struct OMXPacket
 {
     int id;
-    double    pts; // pts in DVD_TIME_BASE
-    double    dts; // dts in DVD_TIME_BASE
-    double    now; // dts in DVD_TIME_BASE
-    double    duration; // duration in DVD_TIME_BASE if available
+    double    pts; // pts in AV_TIME_BASE
+    double    dts; // dts in AV_TIME_BASE
+    double    now; // dts in AV_TIME_BASE
+    double    duration; // duration in AV_TIME_BASE if available
     int       size;
     uint8_t   *data;
     int       stream_index;
     StreamInfo hints;
     enum AVMediaType codec_type;
+    AVRational time_base;
+    int64_t av_pts;
 } OMXPacket;
 
 enum OMXStreamType

@@ -19,7 +19,7 @@ VideoPlayerTextured::~VideoPlayerTextured()
     close();
 }
 
-bool VideoPlayerTextured::open(StreamInfo& hints, Component* clockComponent_, ofxOMXPlayerSettings& settings_, EGLImageKHR eglImage_)
+bool VideoPlayerTextured::open(StreamInfo hints, OMXClock* omxClock_, ofxOMXPlayerSettings& settings_, EGLImageKHR eglImage_)
 {
 
 	eglImage = eglImage_;
@@ -33,7 +33,8 @@ bool VideoPlayerTextured::open(StreamInfo& hints, Component* clockComponent_, of
 
 
 	omxStreamInfo       = hints;
-	clockComponent    = clockComponent_;
+    omxClock = omxClock_;
+	clockComponent    = omxClock->getComponent();
 	fps         = 25.0f;
 	currentPTS = DVD_NOPTS_VALUE;
 	doAbort      = false;
@@ -41,6 +42,7 @@ bool VideoPlayerTextured::open(StreamInfo& hints, Component* clockComponent_, of
 	cachedSize = 0;
 	speed       = DVD_PLAYSPEED_NORMAL;
 
+    adjustFPS();
 	if(!openDecoder())
 	{
 		close();
@@ -58,20 +60,7 @@ bool VideoPlayerTextured::open(StreamInfo& hints, Component* clockComponent_, of
 
 bool VideoPlayerTextured::openDecoder()
 {
-	if (omxStreamInfo.fpsrate && omxStreamInfo.fpsscale)
-	{
-		fps = DVD_TIME_BASE / OMXReader::normalizeFrameduration((double)DVD_TIME_BASE * omxStreamInfo.fpsscale / omxStreamInfo.fpsrate);
-	}
-	else
-	{
-		fps = 25;
-	}
 
-	if( fps > 100 || fps < 5 )
-	{
-		//ofLogVerbose(__func__) << "Invalid framerate " << fps  << " using forced 25fps and just trust timestamps";
-		fps = 25;
-	}
 
 
 	if (!textureDecoder)
@@ -82,7 +71,7 @@ bool VideoPlayerTextured::openDecoder()
 
 	decoder = (BaseVideoDecoder*)textureDecoder;
 
-	if(!textureDecoder->open(omxStreamInfo, clockComponent, settings, eglImage))
+	if(!textureDecoder->open(omxStreamInfo, omxClock, settings, eglImage))
 	{
         delete textureDecoder;
         textureDecoder = NULL;

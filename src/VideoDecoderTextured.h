@@ -10,11 +10,10 @@ public:
     VideoDecoderTextured();
     ~VideoDecoderTextured(){};
     
-    bool open(StreamInfo&, Component* clockComponent, ofxOMXPlayerSettings&, EGLImageKHR);
+    bool open(StreamInfo, OMXClock* omxClock_, ofxOMXPlayerSettings&, EGLImageKHR);
         
     int getCurrentFrame();
     void resetFrameCounter();
-    static OMX_ERRORTYPE onDecoderEmptyBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
     static OMX_ERRORTYPE onRenderFillBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
 
 private:

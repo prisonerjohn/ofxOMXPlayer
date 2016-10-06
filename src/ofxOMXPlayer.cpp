@@ -859,7 +859,6 @@ void ofxOMXPlayer::close()
     {
         if(engine->directPlayer && engine->directPlayer->directDecoder)
         {
-            engine->directPlayer->directDecoder->doUpdate = false;
             engine->directPlayer->directDecoder->display.isReady = false;
         }
     }

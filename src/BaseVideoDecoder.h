@@ -31,9 +31,9 @@ public:
     Component schedulerComponent;
     Component imageFXComponent;
     
-    
+    OMXClock* omxClock;
     Component* clockComponent;
-    
+
     Tunnel clockTunnel;
     Tunnel schedulerTunnel;
     Tunnel decoderTunnel;
@@ -55,7 +55,7 @@ public:
     uint32_t validHistoryPTS;
     
     
-    
+    bool decode(OMXPacket* omxPacket);
     bool decode(uint8_t *pData, int iSize, double pts);
     
     
@@ -90,7 +90,7 @@ public:
     
     ofxOMXPlayerSettings settings;
 
-    
+    StreamInfo streamInfo;
     CriticalSection  m_critSection;
     int EndOfFrameCounter;
 };

@@ -44,7 +44,7 @@ public:
     bool start(double pts);
     bool step(int steps = 1);
     bool reset();
-    double getMediaTime();
+    int64_t getMediaTime();
     bool setMediaTime(double pts);
     bool pause();
     bool resume();

@@ -520,7 +520,8 @@ OMXPacket* OMXReader::Read()
     omxPacket->dts = ConvertTimestamp(pkt.dts, pStream->time_base.den, pStream->time_base.num);
     omxPacket->pts = ConvertTimestamp(pkt.pts, pStream->time_base.den, pStream->time_base.num);
     omxPacket->duration = DVD_SEC_TO_TIME((double)pkt.duration * pStream->time_base.num / pStream->time_base.den);
-    
+    omxPacket->av_pts = pkt.pts;
+    omxPacket->time_base = pStream->time_base;
     // used to guess streamlength
     if (omxPacket->dts != DVD_NOPTS_VALUE && (omxPacket->dts > currentPTS || currentPTS == DVD_NOPTS_VALUE))
         currentPTS = omxPacket->dts;
@@ -999,7 +1000,7 @@ double OMXReader::ConvertTimestamp(int64_t pts, int den, int num)
     else if( timestamp + 0.1f > starttime )
         timestamp = 0;
     
-    return timestamp*DVD_TIME_BASE;
+    return timestamp*AV_TIME_BASE;
 }
 
 int OMXReader::getChapter()
@@ -1104,11 +1105,11 @@ int OMXReader::getStreamLength()
 double OMXReader::normalizeFrameduration(double frameduration)
 {
     //if the duration is within 20 microseconds of a common duration, use that
-    double durations[] = {DVD_TIME_BASE * 1.001 / 24.0, DVD_TIME_BASE / 24.0, DVD_TIME_BASE / 25.0,
-        DVD_TIME_BASE * 1.001 / 30.0, DVD_TIME_BASE / 30.0, DVD_TIME_BASE / 50.0,
-        DVD_TIME_BASE * 1.001 / 60.0, DVD_TIME_BASE / 60.0};
+    double durations[] = {AV_TIME_BASE * 1.001 / 24.0, AV_TIME_BASE / 24.0, AV_TIME_BASE / 25.0,
+        AV_TIME_BASE * 1.001 / 30.0, AV_TIME_BASE / 30.0, AV_TIME_BASE / 50.0,
+        AV_TIME_BASE * 1.001 / 60.0, AV_TIME_BASE / 60.0};
     
-    double lowestdiff = DVD_TIME_BASE;
+    double lowestdiff = AV_TIME_BASE;
     int    selected   = -1;
     for (size_t i = 0; i < sizeof(durations) / sizeof(durations[0]); i++)
     {

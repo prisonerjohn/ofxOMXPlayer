@@ -34,7 +34,7 @@ VideoPlayerDirect::~VideoPlayerDirect()
     close();
 }
 
-bool VideoPlayerDirect::open(StreamInfo& hints, Component* clockComponent_, ofxOMXPlayerSettings& settings_)
+bool VideoPlayerDirect::open(StreamInfo hints, OMXClock* omxClock_, ofxOMXPlayerSettings& settings_)
 {
 
 	if(ThreadHandle())
@@ -52,9 +52,10 @@ bool VideoPlayerDirect::open(StreamInfo& hints, Component* clockComponent_, ofxO
 	doFlush         = false;
 	cachedSize      = 0;
 	speed           = DVD_PLAYSPEED_NORMAL;
-    clockComponent = clockComponent_;
+    omxClock = omxClock_;
+    clockComponent = omxClock->getComponent();
 
-
+    adjustFPS();
 
 	if(!openDecoder())
 	{
@@ -73,26 +74,11 @@ bool VideoPlayerDirect::open(StreamInfo& hints, Component* clockComponent_, ofxO
 bool VideoPlayerDirect::openDecoder()
 {
 
-	if (omxStreamInfo.fpsrate && omxStreamInfo.fpsscale)
-	{
-		fps = DVD_TIME_BASE / OMXReader::normalizeFrameduration((double)DVD_TIME_BASE * omxStreamInfo.fpsscale / omxStreamInfo.fpsrate);
-	}
-	else
-	{
-		fps = 25;
-	}
-
-	if( fps > 100 || fps < 5 )
-	{
-		ofLog(OF_LOG_VERBOSE, "Invalid framerate %d, using forced 25fps and just trust timestamps\n", (int)fps); 
-		fps = 25;
-	}
-
 
 	directDecoder = new VideoDecoderDirect();
 	
 	decoder = (BaseVideoDecoder*)directDecoder;
-	if(!directDecoder->open(omxStreamInfo, clockComponent, settings))
+	if(!directDecoder->open(omxStreamInfo, omxClock, settings))
 	{
 
         delete directDecoder;

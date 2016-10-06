@@ -8,15 +8,7 @@ VideoDecoderTextured::VideoDecoderTextured()
 }
 
 
-OMX_ERRORTYPE VideoDecoderTextured::onDecoderEmptyBufferDone(OMX_HANDLETYPE hComponent,
-                                                           OMX_PTR pAppData,
-                                                           OMX_BUFFERHEADERTYPE* pBuffer)
-{
-    ofLogVerbose(__func__) << "";
-    return OMX_ErrorNone;
 
-
-}
 
 
 OMX_ERRORTYPE VideoDecoderTextured::onRenderFillBufferDone(OMX_HANDLETYPE hComponent,
@@ -56,13 +48,15 @@ void VideoDecoderTextured::resetFrameCounter()
 	renderComponent.resetFrameCounter();
 }
 
-bool VideoDecoderTextured::open(StreamInfo& streamInfo, Component* clockComponent_, ofxOMXPlayerSettings& settings_, EGLImageKHR eglImage)
+bool VideoDecoderTextured::open(StreamInfo streamInfo_, OMXClock* omxClock_, ofxOMXPlayerSettings& settings_, EGLImageKHR eglImage)
 {
 	OMX_ERRORTYPE error   = OMX_ErrorNone;
 
     settings = settings_;
+    streamInfo = streamInfo_;
     doFilters = settings.enableFilters;
-    clockComponent = clockComponent_;
+    omxClock = omxClock_;
+    clockComponent = omxClock->getComponent();
     
 	videoWidth  = streamInfo.width;
 	videoHeight = streamInfo.height;

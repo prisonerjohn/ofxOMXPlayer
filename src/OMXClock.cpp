@@ -211,18 +211,18 @@ bool OMXClock::reset()
     return true;
 }
 
-double OMXClock::getMediaTime()
+int64_t OMXClock::getMediaTime()
 {
     if(clockComponent.getHandle() == NULL)
     {
         ofLogError(__func__) << "NO CLOCK YET";
         return 0;
     }
-
+    int64_t pts = 0;
     lock();
 
     OMX_ERRORTYPE error = OMX_ErrorNone;
-    double pts = 0;
+    
 
     OMX_TIME_CONFIG_TIMESTAMPTYPE timeStamp;
     OMX_INIT_STRUCTURE(timeStamp);
@@ -237,7 +237,7 @@ double OMXClock::getMediaTime()
         return 0;
     }
 
-    pts = (double)FromOMXTime(timeStamp.nTimestamp);
+    pts = FromOMXTime(timeStamp.nTimestamp);
     unlock();
 
     return pts;

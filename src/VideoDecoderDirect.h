@@ -12,7 +12,7 @@ public:
   
     VideoDecoderDirect();
     ~VideoDecoderDirect();
-    bool open(StreamInfo&, Component*, ofxOMXPlayerSettings&);
+    bool open(StreamInfo&, OMXClock* omxClock_, ofxOMXPlayerSettings&);
       
     void updateFrameCount();
     void onUpdate(ofEventArgs& args);
@@ -20,7 +20,7 @@ public:
     int getCurrentFrame();
     void resetFrameCounter();
     
-
+    StreamInfo streamInfo;
     bool doDeinterlace;
     bool doHDMISync;    
     OMXDisplay display;

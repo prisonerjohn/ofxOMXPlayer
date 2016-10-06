@@ -20,12 +20,15 @@ BaseVideoPlayer::BaseVideoPlayer()
 	cachedSize   = 0;
 	currentPTS	= DVD_NOPTS_VALUE;
 	speed         = DVD_PLAYSPEED_NORMAL;
+    omxClock = NULL;
     clockComponent = NULL;
 	decoder = NULL;
 	pthread_cond_init(&m_packet_cond, NULL);
 	pthread_mutex_init(&m_lock, NULL);
 	pthread_mutex_init(&m_lock_decoder, NULL);
 	validHistoryPTS = 0;
+    currentFrameNumber = 0;
+    videoStartTime = 0;
 }
 
 BaseVideoPlayer::~BaseVideoPlayer()
@@ -34,8 +37,27 @@ BaseVideoPlayer::~BaseVideoPlayer()
     pthread_cond_destroy(&m_packet_cond);
     pthread_mutex_destroy(&m_lock);
     pthread_mutex_destroy(&m_lock_decoder);
-    
+    omxClock = NULL;
+    clockComponent = NULL;
     decoder       = NULL;
+}
+void BaseVideoPlayer::adjustFPS()
+{
+    if (omxStreamInfo.fpsrate && omxStreamInfo.fpsscale)
+    {
+        fps = AV_TIME_BASE / OMXReader::normalizeFrameduration((double)AV_TIME_BASE * omxStreamInfo.fpsscale / omxStreamInfo.fpsrate);
+    }
+    else
+    {
+        fps = 25;
+    }
+    
+    if( fps > 100 || fps < 5 )
+    {
+        //ofLogVerbose(__func__) << "Invalid framerate " << fps  << " using forced 25fps and just trust timestamps";
+        fps = 25;
+    }
+    omxStreamInfo.fps = fps;
 }
 
 double BaseVideoPlayer::getCurrentPTS()
@@ -93,8 +115,6 @@ void BaseVideoPlayer::applyFilter(OMX_IMAGEFILTERTYPE filter)
     //unlock();
 }
 
-
-
 void BaseVideoPlayer::lock()
 {
 	pthread_mutex_lock(&m_lock);
@@ -114,7 +134,7 @@ void BaseVideoPlayer::unlockDecoder()
 {
 	pthread_mutex_unlock(&m_lock_decoder);
 }
-
+#if 0
 bool BaseVideoPlayer::decode(OMXPacket *pkt)
 {
 	if(!pkt)
@@ -126,17 +146,51 @@ bool BaseVideoPlayer::decode(OMXPacket *pkt)
 	double pts = pkt->pts;
 	if(pkt->pts == DVD_NOPTS_VALUE && (currentPTS == DVD_NOPTS_VALUE || count_bits(validHistoryPTS & 0xffff) < 4))
 	{
+        ofLogVerbose(__func__) << "OVERRIDING pts";
 		pts = pkt->dts;
 	}
 	    
 	if(pts != DVD_NOPTS_VALUE)
 	{
+        //ofLogVerbose(__func__) << "SETTING currentPTS";
 		currentPTS = pts;
 	}
+    
+    //int64_t framerate = floor( 1.00 / ( ( double )pkt->time_base.num / ( double )pkt->time_base.den ) );
+    //int64_t fnumber = av_rescale_q( pkt->av_pts, pkt->time_base, { 1, 24 } );
+    //ofLogVerbose(__func__) << "fnumber: " << fnumber;
+    
+    
     //ofLogVerbose(__func__) << "currentPTS: " << currentPTS;
 	//ofLog(OF_LOG_VERBOSE, "BaseVideoPlayer::Decode dts:%.0f pts:%.0f cur:%.0f, size:%d", pkt->dts, pkt->pts, currentPTS, pkt->size);
 	return decoder->decode(pkt->data, pkt->size, pts);
 }
+#endif
+
+bool BaseVideoPlayer::decode(OMXPacket *omxPacket)
+{
+
+    
+    if(!omxPacket)
+    {
+        return false;
+    }
+    if(omxPacket->pts != DVD_NOPTS_VALUE)
+    {
+        //ofLogVerbose(__func__) << "SETTING currentPTS";
+        currentPTS = omxPacket->pts;
+    }
+    
+    //int64_t framerate = floor( 1.00 / ( ( double )pkt->time_base.num / ( double )pkt->time_base.den ) );
+    int64_t fnumber = av_rescale_q( omxPacket->av_pts, omxPacket->time_base, { 1, omxStreamInfo.fps } );
+    ofLogVerbose(__func__) << "fpsrate: " << omxStreamInfo.fpsrate << " FRAME NUMBER: " << fnumber;
+    
+    
+    //ofLogVerbose(__func__) << "currentPTS: " << currentPTS;
+    //ofLog(OF_LOG_VERBOSE, "BaseVideoPlayer::Decode dts:%.0f pts:%.0f cur:%.0f, size:%d", pkt->dts, pkt->pts, currentPTS, pkt->size);
+    return decoder->decode(omxPacket);
+}
+
 
 
 

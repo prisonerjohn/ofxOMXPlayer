@@ -75,6 +75,12 @@ public:
     
     ofxOMXPlayerSettings settings;
     Component* clockComponent;
-
-
+    OMXClock* omxClock;
+    
+    void adjustFPS();
+    int currentFrameNumber;
+    uint64_t videoStartTime;
+    uint64_t videoEndTime;
+    float timePerFrame;
+    float totalMovieTime;
 };

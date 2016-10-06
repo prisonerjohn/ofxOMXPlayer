@@ -60,15 +60,16 @@ VideoDecoderDirect::~VideoDecoderDirect()
 	ofLogVerbose(__func__) << "removed update listener";
 }
 
-bool VideoDecoderDirect::open(StreamInfo& streamInfo, Component* clockComponent_, ofxOMXPlayerSettings& settings_)
+bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxOMXPlayerSettings& settings_)
 {
 	OMX_ERRORTYPE error   = OMX_ErrorNone;
-
+    streamInfo = streamInfo_;
 	videoWidth  = streamInfo.width;
 	videoHeight = streamInfo.height;
-
+    
     settings = settings_;
-    clockComponent = clockComponent_;
+    omxClock = omxClock_;
+    clockComponent = omxClock->getComponent();
 	doHDMISync = settings.directDisplayOptions.doHDMISync;
     
 
@@ -352,6 +353,7 @@ void VideoDecoderDirect::updateFrameCount()
     
     error = renderComponent.getParameter(OMX_IndexConfigBrcmPortStats, &stats);
     OMX_TRACE(error);
+#if 0
     stringstream info;
     info << "nImageCount: " << stats.nImageCount << endl;
     info << "nBufferCount: " << stats.nBufferCount << endl;
@@ -364,6 +366,15 @@ void VideoDecoderDirect::updateFrameCount()
     info << "nCorruptMBs: " << stats.nCorruptMBs << endl;
 
     ofLogVerbose(__func__) << info.str();
+#endif
+    /*
+    double currentMediaTime = omxClock->getMediaTime();
+    int numFrames = 800;
+    int fps = 24;
+    int totalSeconds = numFrames*24;
+    int currentPosition = DVD_MSEC_TO_TIME(currentMediaTime)*totalSeconds;
+    ofLogVerbose(__func__) << "currentPosition: " << currentPosition;*/
+    
 }
 #if 0
 void VideoDecoderDirect::updateFrameCount()
@@ -406,8 +417,8 @@ void VideoDecoderDirect::updateFrameCount()
 int VideoDecoderDirect::getCurrentFrame()
 {
     //ofLogVerbose(__func__) << "frameCounter: " << frameCounter << " frameOffset: " << frameOffset;
-    
-    int result = frameCounter-frameOffset;
+    uint64_t currentTime = omxClock->getMediaTime();
+    int result = (currentTime*streamInfo.fpsrate)/AV_TIME_BASE;
     return result;
 }
 
