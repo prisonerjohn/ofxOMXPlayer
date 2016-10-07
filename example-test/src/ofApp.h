@@ -4,6 +4,7 @@
 #include "TexturedLoopTest.h"
 #include "TexturedStreamTest.h"
 #include "DirectLoopTest.h"
+#include "PlaylistTest.h"
 
 #include "TerminalListener.h"
 #include "PlaybackTestRunner.h"
@@ -40,13 +41,16 @@ public:
         DirectLoopTest* directLoopTest = new DirectLoopTest();
         directLoopTest->setup("DirectLoopTest");
         
+        PlaylistTest* playlistTest = new PlaylistTest();
+        playlistTest->setup("PlaylistTest");
         
+        //tests.push_back(playlistTest);
         tests.push_back(directLoopTest);
         tests.push_back(texturedLoopTest);
+        tests.push_back(texturedStreamTest);
+        
 
         
-        
-        tests.push_back(texturedStreamTest);
         
         currentTestID = 0;
         currentTest = tests[currentTestID];
