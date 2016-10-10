@@ -275,7 +275,8 @@ void ofxOMXPlayerEngine::process()
     while (!doStop)
     {
         //ofLogVerbose(__func__) << OMXReader::packetsAllocated << " packetsFreed: " << OMXReader::packetsFreed << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed);
-        ofLogVerbose(__func__) << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed) << " " << getCurrentFrame() << " of " << getTotalNumFrames();
+        //ofLogVerbose(__func__) << " remaining packets: " << remainingPackets;
+        //ofLogVerbose(__func__) << " currentFrame " << getCurrentFrame() << " of " << getTotalNumFrames();
         if(getCurrentFrame() && getCurrentFrame()>=getTotalNumFrames())
         {
             if(doLooping)
@@ -742,7 +743,7 @@ void ofxOMXPlayerEngine::onVideoEnd()
 ofxOMXPlayerEngine::~ofxOMXPlayerEngine()
 {
     doStop = true;
-    
+    ofLogVerbose(__func__) << "omxReader.remainingPackets: " << omxReader.remainingPackets;
     if(ThreadHandle())
     {
         StopThread("ofxOMXPlayerEngine");

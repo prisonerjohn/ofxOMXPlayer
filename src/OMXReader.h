@@ -187,5 +187,8 @@ public:
     void unlock();
     bool setActiveStreamInternal(OMXStreamType type, unsigned int index);
     bool isStream;
+    
+    int remainingPackets;
+
 };
 

@@ -18,7 +18,8 @@ OMXReader::OMXReader()
     isEOF = false;
     chapterCount = 0;
     currentPTS = DVD_NOPTS_VALUE;
-    
+    remainingPackets = 0;
+
     for(int i = 0; i < MAX_STREAMS; i++)
     {
         omxStreams[i].extradata = NULL;
@@ -278,6 +279,11 @@ void OMXReader::ClearStreams()
 
 bool OMXReader::close()
 {
+    
+    
+    remainingPackets = (OMXReader::packetsAllocated-OMXReader::packetsFreed);
+    ofLogVerbose(__func__) << "remainingPackets: " << remainingPackets;
+
     if (avFormatContext)
     {
         if (avioContext && avFormatContext->pb && avFormatContext->pb != avioContext)
@@ -548,6 +554,9 @@ OMXPacket* OMXReader::Read()
     av_free_packet(&pkt);
     
     unlock();
+    
+    remainingPackets = (OMXReader::packetsAllocated-OMXReader::packetsFreed);
+    ofLogVerbose(__func__) << "remainingPackets: " << remainingPackets;
     return omxPacket;
 }
 

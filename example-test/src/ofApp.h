@@ -44,11 +44,12 @@ public:
         PlaylistTest* playlistTest = new PlaylistTest();
         playlistTest->setup("PlaylistTest");
         
-        //tests.push_back(playlistTest);
-        tests.push_back(directLoopTest);
         tests.push_back(texturedLoopTest);
-        tests.push_back(texturedStreamTest);
+        tests.push_back(directLoopTest);
         
+        tests.push_back(texturedStreamTest);
+        tests.push_back(playlistTest);
+
 
         
         
