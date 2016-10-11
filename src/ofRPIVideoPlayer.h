@@ -57,6 +57,6 @@ protected:
     void onVideoEnd(ofxOMXPlayerListenerEventData&);
     void onVideoLoop(ofxOMXPlayerListenerEventData&);
     ofxOMXPlayerSettings settings;
-    bool openOMXPlayer(ofxOMXPlayerSettings);
+    bool openOMXPlayer(ofxOMXPlayerSettings&);
 };
 

@@ -49,7 +49,7 @@ bool ofRPIVideoPlayer::load(string name)
     
 }
 
-bool ofRPIVideoPlayer::openOMXPlayer(ofxOMXPlayerSettings settings_)
+bool ofRPIVideoPlayer::openOMXPlayer(ofxOMXPlayerSettings& settings_)
 {
     settings = settings_;
     openState = omxPlayer.setup(settings);

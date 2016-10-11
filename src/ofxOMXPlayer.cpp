@@ -525,6 +525,8 @@ void ofxOMXPlayer::increaseVolume()
     if (engine)
     {
         engine->increaseVolume();
+        settings.initialVolume = getVolume();
+        
     }
 }
 void ofxOMXPlayer::decreaseVolume()
@@ -532,6 +534,8 @@ void ofxOMXPlayer::decreaseVolume()
     if (engine)
     {
         engine->decreaseVolume();
+        settings.initialVolume = getVolume();
+
     }
 }
 
@@ -540,6 +544,8 @@ void ofxOMXPlayer::setVolume(float volume)
     if (engine)
     {
         engine->setVolume(volume);
+        settings.initialVolume = getVolume();
+
     }
 }
 
