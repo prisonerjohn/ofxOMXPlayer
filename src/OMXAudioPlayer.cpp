@@ -83,7 +83,7 @@ void OMXAudioPlayer::unlockDecoder()
 
 bool OMXAudioPlayer::open(StreamInfo& hints, 
                           OMXClock *omxClock_, 
-                          OMXReader *omx_reader,
+                          OMXReader *omxReader_,
                           std::string device)
 {
     if(ThreadHandle())
@@ -95,7 +95,7 @@ bool OMXAudioPlayer::open(StreamInfo& hints,
     omxStreamInfo   = hints;
     omxClock = omxClock_;
     clockComponent        = omxClock->getComponent();
-    omxReader       = omx_reader;
+    omxReader       = omxReader_;
     deviceName      = device;
     currentPTS      = DVD_NOPTS_VALUE;
     doAbort         = false;
@@ -291,7 +291,7 @@ void OMXAudioPlayer::process()
         lock();
         if(doFlush && omxPacket)
         {
-            OMXReader::freePacket(omxPacket, __func__);
+            omxReader->freePacket(omxPacket, __func__);
             omxPacket = NULL;
             doFlush = false;
         }
@@ -306,13 +306,13 @@ void OMXAudioPlayer::process()
         lockDecoder();
         if(doFlush && omxPacket)
         {
-            OMXReader::freePacket(omxPacket, __func__);
+            omxReader->freePacket(omxPacket, __func__);
             omxPacket = NULL;
             doFlush = false;
         }
         else if(omxPacket && decode(omxPacket))
         {
-            OMXReader::freePacket(omxPacket, __func__);
+            omxReader->freePacket(omxPacket, __func__);
             omxPacket = NULL;
         }
         unlockDecoder();
@@ -320,7 +320,7 @@ void OMXAudioPlayer::process()
 
     if(omxPacket)
     {
-        OMXReader::freePacket(omxPacket, __func__);
+        omxReader->freePacket(omxPacket, __func__);
     }
 }
 
@@ -334,7 +334,7 @@ void OMXAudioPlayer::flush()
     {
         OMXPacket *pkt = packets.front();
         packets.pop_front();
-        OMXReader::freePacket(pkt, __func__);
+        omxReader->freePacket(pkt, __func__);
     }
     currentPTS = DVD_NOPTS_VALUE;
     cachedSize = 0;

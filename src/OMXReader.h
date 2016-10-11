@@ -78,9 +78,7 @@ typedef struct OMXStream
 class OMXReader
 {
 public:
-    static int packetCounter;
-    static int packetsAllocated;
-    static int packetsFreed;
+
     OMXReader();
     ~OMXReader();
     bool open(std::string filename, bool doSkipAvProbe);
@@ -89,7 +87,7 @@ public:
     //void FlushRead();
     bool SeekTime(int time, bool backwords, double *startpts, bool doLoopOnFail = true);
     AVMediaType PacketType(OMXPacket *pkt);
-    OMXPacket *Read();
+    OMXPacket* Read();
     void process();
     bool getStreams();
     void addStream(int id);
@@ -120,8 +118,8 @@ public:
     {
         return omxChapters[(chapter > MAX_OMX_CHAPTERS) ? MAX_OMX_CHAPTERS : chapter];
     };
-    static void freePacket(OMXPacket *pkt, string caller="UNDEFINED");
-    static OMXPacket* allocPacket(int size);
+    void freePacket(OMXPacket *pkt, string caller="UNDEFINED");
+    
     void setSpeed(int iSpeed);
     int getSpeed()
     {
@@ -188,7 +186,11 @@ public:
     bool setActiveStreamInternal(OMXStreamType type, unsigned int index);
     bool isStream;
     
+    int packetCounter;
+    int packetsAllocated;
+    int packetsFreed;
     int remainingPackets;
+    void updateRemainingPackets(string caller="UNDEFINED");
 
 };
 

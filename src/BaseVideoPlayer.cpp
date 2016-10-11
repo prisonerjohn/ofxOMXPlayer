@@ -20,6 +20,7 @@ BaseVideoPlayer::BaseVideoPlayer()
 	cachedSize   = 0;
 	currentPTS	= DVD_NOPTS_VALUE;
 	speed         = DVD_PLAYSPEED_NORMAL;
+    omxReader = NULL;
     omxClock = NULL;
     clockComponent = NULL;
 	decoder = NULL;
@@ -38,6 +39,8 @@ BaseVideoPlayer::~BaseVideoPlayer()
     omxClock = NULL;
     clockComponent = NULL;
     decoder       = NULL;
+    omxReader = NULL;
+
 }
 void BaseVideoPlayer::adjustFPS()
 {
@@ -164,7 +167,7 @@ void BaseVideoPlayer::flush()
 	{
 		OMXPacket *pkt = packets.front();
 		packets.pop_front();
-		OMXReader::freePacket(pkt, __func__);
+		omxReader->freePacket(pkt, __func__);
 
 	}
 
@@ -241,7 +244,7 @@ void BaseVideoPlayer::process()
 		lock();
 		if(doFlush && omxPacket)
 		{
-			OMXReader::freePacket(omxPacket, __func__);
+			omxReader->freePacket(omxPacket, __func__);
 			omxPacket = NULL;
 			doFlush = false;
 		}
@@ -260,7 +263,7 @@ void BaseVideoPlayer::process()
 		lockDecoder();
 		if(doFlush && omxPacket)
 		{
-			OMXReader::freePacket(omxPacket, __func__);
+			omxReader->freePacket(omxPacket, __func__);
 			omxPacket = NULL;
 			doFlush = false;
 		}
@@ -269,7 +272,7 @@ void BaseVideoPlayer::process()
 			if(omxPacket && decode(omxPacket))
 			{
 				
-				OMXReader::freePacket(omxPacket, __func__);
+				omxReader->freePacket(omxPacket, __func__);
 				omxPacket = NULL;
 			}
 		}
@@ -281,7 +284,7 @@ void BaseVideoPlayer::process()
 	
 	if(omxPacket)
 	{
-		OMXReader::freePacket(omxPacket, __func__);
+		omxReader->freePacket(omxPacket, __func__);
 	}
 }
 

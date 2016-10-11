@@ -2,9 +2,7 @@
 #include "XMemUtils.h"
 
 
-int OMXReader::packetCounter = 0;
-int OMXReader::packetsAllocated= 0;
-int OMXReader::packetsFreed= 0;
+
 OMXReader::OMXReader()
 {
     isOpen = false;
@@ -19,7 +17,9 @@ OMXReader::OMXReader()
     chapterCount = 0;
     currentPTS = DVD_NOPTS_VALUE;
     remainingPackets = 0;
-
+    packetCounter = 0;
+    packetsAllocated= 0;
+    packetsFreed= 0;
     for(int i = 0; i < MAX_STREAMS; i++)
     {
         omxStreams[i].extradata = NULL;
@@ -277,12 +277,17 @@ void OMXReader::ClearStreams()
     programID     = UINT_MAX;
 }
 
+void OMXReader::updateRemainingPackets(string caller)
+{
+    remainingPackets = (packetsAllocated-packetsFreed);
+    //ofLogVerbose(__func__) << caller << " remainingPackets: " << remainingPackets;
+}
 bool OMXReader::close()
 {
     
     
-    remainingPackets = (OMXReader::packetsAllocated-OMXReader::packetsFreed);
-    ofLogVerbose(__func__) << "remainingPackets: " << remainingPackets;
+    updateRemainingPackets(__func__);
+    ofLogVerbose(__func__) << " remainingPackets: " << remainingPackets;
 
     if (avFormatContext)
     {
@@ -502,7 +507,23 @@ OMXPacket* OMXReader::Read()
         pkt.pts = AV_NOPTS_VALUE;
     }
     
-    omxPacket = allocPacket(pkt.size);
+    
+    
+    omxPacket = new OMXPacket();
+    
+    omxPacket->data = new uint8_t[pkt.size + FF_INPUT_BUFFER_PADDING_SIZE];
+    //memset(pkt->data + size, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+    omxPacket->size = pkt.size;
+    omxPacket->dts  = DVD_NOPTS_VALUE;
+    omxPacket->pts  = DVD_NOPTS_VALUE;
+    omxPacket->now  = DVD_NOPTS_VALUE;
+    omxPacket->duration = DVD_NOPTS_VALUE;
+    omxPacket->id = OMXReader::packetCounter;
+    packetCounter++;
+    packetsAllocated++;
+    updateRemainingPackets(__func__);
+    
+    
     /* oom error allocation av packet */
     if(!omxPacket)
     {
@@ -550,13 +571,11 @@ OMXPacket* OMXReader::Read()
                 avFormatContext->duration = duration;
         }
     }
-    
+
     av_free_packet(&pkt);
     
     unlock();
     
-    remainingPackets = (OMXReader::packetsAllocated-OMXReader::packetsFreed);
-    ofLogVerbose(__func__) << "remainingPackets: " << remainingPackets;
     return omxPacket;
 }
 
@@ -617,7 +636,6 @@ bool OMXReader::getStreams()
     if(videoIndex != -1)
     {
         //m_current_chapter = 0;
-#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(52,14,0)
         chapterCount = (avFormatContext->nb_chapters > MAX_OMX_CHAPTERS) ? MAX_OMX_CHAPTERS : avFormatContext->nb_chapters;
         for(i = 0; i < chapterCount; i++)
         {
@@ -631,18 +649,12 @@ bool OMXReader::getStreams()
             omxChapters[i].seekto_ms = ConvertTimestamp(chapter->start, chapter->time_base.den, chapter->time_base.num) / 1000;
             omxChapters[i].ts        = omxChapters[i].seekto_ms / 1000;
             
-#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(52,83,0)
             AVDictionaryEntry *titleTag = av_dict_get(avFormatContext->chapters[i]->metadata,"title", NULL, 0);
             if (titleTag)
                 omxChapters[i].name = titleTag->value;
-#else
-            if(avFormatContext->chapters[i]->title)
-                omxChapters[i].name = avFormatContext->chapters[i]->title;
-#endif
             printf("Chapter : \t%d \t%s \t%8.2f\n", i, omxChapters[i].name.c_str(), omxChapters[i].ts);
         }
     }
-#endif
     
     return true;
 }
@@ -691,21 +703,14 @@ void OMXReader::addStream(int id)
             return;
     }
     
-#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(52,83,0)
     AVDictionaryEntry *langTag = av_dict_get(pStream->metadata, "language", NULL, 0);
     if (langTag)
         strncpy(omxStreams[id].language, langTag->value, 3);
-#else
-    strcpy( omxStreams[id].language, pStream->language );
-#endif
-    
-#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(52,83,0)
+
     AVDictionaryEntry *titleTag = av_dict_get(pStream->metadata,"title", NULL, 0);
     if (titleTag)
         omxStreams[id].name = titleTag->value;
-#else
-    omxStreams[id].name = pStream->title;
-#endif
+
     
     if( pStream->codec->extradata && pStream->codec->extradata_size > 0 )
     {
@@ -935,28 +940,9 @@ void OMXReader::freePacket(OMXPacket *pkt, string caller)
             free(pkt->data);
         }
         free(pkt);
-        OMXReader::packetsFreed++;
-        //ofLogVerbose(__func__) << "from: " << caller << " packetsAllocated: " << OMXReader::packetsAllocated << " packetsFreed: " << OMXReader::packetsFreed << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed);
+        packetsFreed++;
+        updateRemainingPackets(__func__);
     }
-}
-
-OMXPacket *OMXReader::allocPacket(int size)
-{
-    OMXPacket *pkt = new OMXPacket();
-    
-    pkt->data = new uint8_t[size + FF_INPUT_BUFFER_PADDING_SIZE];
-    //memset(pkt->data + size, 0, FF_INPUT_BUFFER_PADDING_SIZE);
-    pkt->size = size;
-    pkt->dts  = DVD_NOPTS_VALUE;
-    pkt->pts  = DVD_NOPTS_VALUE;
-    pkt->now  = DVD_NOPTS_VALUE;
-    pkt->duration = DVD_NOPTS_VALUE;
-    pkt->id = OMXReader::packetCounter;
-    //READER(OMXReader::packetCounter);
-    OMXReader::packetCounter++;
-    OMXReader::packetsAllocated++;
-    //ofLogVerbose(__func__) << " packetsAllocated: " << OMXReader::packetsAllocated << " packetsFreed: " << OMXReader::packetsFreed << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed);
-    return pkt;
 }
 
 bool OMXReader::setActiveStream(OMXStreamType type, unsigned int index)
@@ -976,16 +962,13 @@ bool OMXReader::seekChapter(int chapter, double* startpts)
     if(avFormatContext == NULL)
         return false;
     
-#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(52,14,0)
     if(chapter < 1 || chapter > (int)avFormatContext->nb_chapters)
         return false;
     
     AVChapter *ch = avFormatContext->chapters[chapter-1];
     double dts = ConvertTimestamp(ch->start, ch->time_base.den, ch->time_base.num);
     return SeekTime(DVD_TIME_TO_MSEC(dts), 0, startpts);
-#else
-    return false;
-#endif
+
 }
 
 double OMXReader::ConvertTimestamp(int64_t pts, int den, int num)
@@ -1018,7 +1001,6 @@ int OMXReader::getChapter()
        || currentPTS == DVD_NOPTS_VALUE)
         return 0;
     
-#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(52,14,0)
     for(unsigned i = 0; i < avFormatContext->nb_chapters; i++)
     {
         AVChapter *chapter = avFormatContext->chapters[i];
@@ -1026,18 +1008,15 @@ int OMXReader::getChapter()
            && currentPTS <  ConvertTimestamp(chapter->end,   chapter->time_base.den, chapter->time_base.num))
             return i + 1;
     }
-#endif
     return 0;
 }
 
 void OMXReader::getChapterName(std::string& strChapterName)
 {
     strChapterName = "";
-#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(52,14,0)
     int chapterIdx = getChapter();
     if(chapterIdx <= 0)
         return;
-#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(52,83,0)
     // API added on: 2010-10-15
     // (Note that while the function was available earlier, the generic
     // metadata tags were not populated by default)
@@ -1045,11 +1024,6 @@ void OMXReader::getChapterName(std::string& strChapterName)
                                               "title", NULL, 0);
     if (titleTag)
         strChapterName = titleTag->value;
-#else
-    if (avFormatContext->chapters[chapterIdx-1]->title)
-        strChapterName = avFormatContext->chapters[chapterIdx-1]->title;
-#endif
-#endif
 }
 
 void OMXReader::updateCurrentPTS()

@@ -2,6 +2,16 @@
 
 #pragma mark Tunnel
 
+
+#if OMX_LOG_LEVEL >= OMX_LOG_LEVEL_ERROR_ONLY
+#define TUNNEL_LOG(x)  ofLogVerbose(__func__) << ofToString(x);
+
+#else
+#undef DEBUG_TUNNELS
+#define TUNNEL_LOG(x) 
+#endif
+
+
 //#define DEBUG_TUNNELS
 
 Tunnel::Tunnel()
@@ -92,62 +102,6 @@ OMX_ERRORTYPE Tunnel::Deestablish(string caller)
     
     bool didTearDownTunnel = sourceComponent->tunnelToNull(sourcePort);
     didTearDownTunnel = destinationComponent->tunnelToNull(destinationPort);
-
-
-    
-#if 0 
-    error = sourceComponent->disableAllPorts();
-    OMX_TRACE(error, debugString);
-    
-    error = destinationComponent->disableAllPorts();
-    OMX_TRACE(error, debugString);
-
-   
-    error = sourceComponent->disablePort(sourcePort);
-    OMX_TRACE(error);
-    
-    error = destinationComponent->disablePort(destinationPort);
-    OMX_TRACE(error, debugString);
-      
-    
-    sourceComponent->setToStateLoaded();
-    destinationComponent->setToStateLoaded();
-    
-
-    
-    error = OMX_SetupTunnel(destinationComponent->getHandle(), destinationPort, NULL, 0);
-    OMX_TRACE(error, debugString);
-    if(error == OMX_ErrorNone)
-    {
-        ofLogVerbose(__func__) << destinationComponent->getName() << " TUNNELED TO NULL SUCCESS";
-    }else
-    {
-         ofLogVerbose(__func__) << destinationComponent->getName() << " TUNNELED TO NULL FAIL";
-        if(error == OMX_ErrorIncorrectStateOperation)
-        {
-            ofLogVerbose(__func__) << GetOMXStateString(destinationComponent->getState());
-
-        }
-    }
-    
-    error = OMX_SetupTunnel(sourceComponent->getHandle(), sourcePort, NULL, 0);
-    OMX_TRACE(error, debugString);
-    if(error == OMX_ErrorNone)
-    {
-        ofLogVerbose(__func__) << sourceComponent->getName() << " TUNNELED TO NULL SUCCESS";
-    }else
-    {
-        ofLogVerbose(__func__) << sourceComponent->getName() << " TUNNELED TO NULL FAIL";
-        if(error == OMX_ErrorIncorrectStateOperation)
-        {
-            ofLogVerbose(__func__) << GetOMXStateString(sourceComponent->getState());
-            
-        }
-    }
-    
- #endif    
-    
-
     
     unlock();
     isEstablished = false;

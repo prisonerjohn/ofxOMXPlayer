@@ -19,7 +19,7 @@ VideoPlayerTextured::~VideoPlayerTextured()
     close();
 }
 
-bool VideoPlayerTextured::open(StreamInfo hints, OMXClock* omxClock_, ofxOMXPlayerSettings& settings_, EGLImageKHR eglImage_)
+bool VideoPlayerTextured::open(StreamInfo hints, OMXClock* omxClock_, OMXReader* omxReader_, ofxOMXPlayerSettings& settings_, EGLImageKHR eglImage_)
 {
 
 	eglImage = eglImage_;
@@ -35,6 +35,8 @@ bool VideoPlayerTextured::open(StreamInfo hints, OMXClock* omxClock_, ofxOMXPlay
 	omxStreamInfo       = hints;
     omxClock = omxClock_;
 	clockComponent    = omxClock->getComponent();
+    omxReader = omxReader_;
+    
 	fps         = 25.0f;
 	currentPTS = DVD_NOPTS_VALUE;
 	doAbort      = false;

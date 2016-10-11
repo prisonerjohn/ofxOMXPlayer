@@ -33,18 +33,6 @@ void OMXClock::unlock()
     pthread_mutex_unlock(&m_lock);
 }
 
-void OMXClock::lock(string caller)
-{
-    ofLogVerbose(__func__) << " " << caller;
-    lock();
-}
-
-void OMXClock::unlock(string caller)
-{
-    ofLogVerbose(__func__) << " " << caller;
-    unlock();
-}
-
 
 bool OMXClock::init(bool has_video, bool has_audio)
 {
@@ -104,7 +92,7 @@ bool  OMXClock::stop()
     }
 
 
-    lock(__func__);
+    lock();
 
     //ofLogVerbose(__func__) << "START";
 
@@ -118,11 +106,11 @@ bool  OMXClock::stop()
     OMX_TRACE(error);
     if(error != OMX_ErrorNone)
     {
-        unlock(__func__);
+        unlock();
         return false;
     }
 
-    unlock(__func__);
+    unlock();
 
     return true;
 }
@@ -135,13 +123,13 @@ bool OMXClock::start(double pts)
         return false;
     }
 
-    lock(__func__);
+    lock();
     
     OMX_ERRORTYPE error = clockComponent.setState(OMX_StateExecuting);
     OMX_TRACE(error);
     if (error != OMX_ErrorNone)
     {
-        unlock(__func__);
+        unlock();
         return false;
     }
     OMX_TIME_CONFIG_CLOCKSTATETYPE clock;
@@ -154,11 +142,11 @@ bool OMXClock::start(double pts)
     OMX_TRACE(error);
     if(error != OMX_ErrorNone)
     {
-        unlock(__func__);
+        unlock();
         return false;
     }
 
-    unlock(__func__);
+    unlock();
 
     return true;
 }
@@ -171,7 +159,7 @@ bool OMXClock::step(int steps)
         return false;
     }
 
-    //lock(__func__);
+    //lock();
 
     OMX_ERRORTYPE error = OMX_ErrorNone;
     OMX_PARAM_U32TYPE param;
@@ -184,11 +172,11 @@ bool OMXClock::step(int steps)
     OMX_TRACE(error);
     if(error != OMX_ErrorNone)
     {
-        unlock(__func__);
+        unlock();
         return false;
     }
 
-    //unlock(__func__);
+    //unlock();
 
     return true;
 }
@@ -201,12 +189,12 @@ bool OMXClock::reset()
         return false;
     }
 
-    lock(__func__);
+    lock();
 
     stop();
     start(0.0);
 
-    unlock(__func__);
+    unlock();
 
     return true;
 }
@@ -233,7 +221,7 @@ int64_t OMXClock::getMediaTime()
 
     if(error != OMX_ErrorNone)
     {
-        unlock(__func__);
+        unlock();
         return 0;
     }
 
@@ -253,7 +241,7 @@ bool OMXClock::setMediaTime(double pts)
         return false;
     }
 
-    lock(__func__);
+    lock();
 
     OMX_ERRORTYPE error = OMX_ErrorNone;
     OMX_INDEXTYPE index;
@@ -277,10 +265,10 @@ bool OMXClock::setMediaTime(double pts)
 
     if(error != OMX_ErrorNone)
     {
-        unlock(__func__);
+        unlock();
         return false;
     }
-    unlock(__func__);
+    unlock();
 
     return true;
 }
@@ -297,7 +285,7 @@ bool OMXClock::pause()
 
     if(!pauseState)
     {
-        lock(__func__);
+        lock();
         ofLogVerbose(__func__) << "currentSpeed: " << currentSpeed;
         previousSpeed = currentSpeed;
         if (setSpeed(0, false))
@@ -305,7 +293,7 @@ bool OMXClock::pause()
             pauseState = true;
         }
 
-        unlock(__func__);
+        unlock();
     }
     return pauseState == true;
     
@@ -321,7 +309,7 @@ bool OMXClock::resume()
 
     if(pauseState)
     {
-        lock(__func__);
+        lock();
 
         ofLogVerbose(__func__) << "currentSpeed: " << currentSpeed;
         ofLogVerbose(__func__) << "previousSpeed: " << previousSpeed;
@@ -330,7 +318,7 @@ bool OMXClock::resume()
             pauseState = false;
         }
 
-        unlock(__func__);
+        unlock();
     }
     return pauseState == false;
 }
@@ -345,7 +333,7 @@ bool OMXClock::setSpeed(int speed, bool doResume /* = false */)
         return false;
     }
 
-    //lock(__func__);
+    //lock();
 
     OMX_ERRORTYPE error = OMX_ErrorNone;
     OMX_TIME_CONFIG_SCALETYPE scaleType;
@@ -380,13 +368,13 @@ bool OMXClock::setSpeed(int speed, bool doResume /* = false */)
 
     if(error != OMX_ErrorNone)
     {
-        //unlock(__func__);
+        //unlock();
         return false;
     }
 
     currentSpeed = speed;
 
-    //unlock(__func__);
+    //unlock();
 
     return true;
 }
@@ -399,7 +387,7 @@ bool OMXClock::enableHDMISync()
         return false;
     }
 
-    lock(__func__);
+    lock();
 
     OMX_ERRORTYPE error = OMX_ErrorNone;
     OMX_CONFIG_LATENCYTARGETTYPE latencyTarget;
@@ -419,11 +407,11 @@ bool OMXClock::enableHDMISync()
 
     if(error != OMX_ErrorNone)
     {
-        unlock(__func__);
+        unlock();
         return false;
     }
 
-    unlock(__func__);
+    unlock();
 
     return true;
 }

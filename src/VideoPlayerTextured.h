@@ -12,7 +12,7 @@ public:
     VideoPlayerTextured();
     ~VideoPlayerTextured();
     
-    bool open(StreamInfo, OMXClock*, ofxOMXPlayerSettings&, EGLImageKHR);
+    bool open(StreamInfo, OMXClock*, OMXReader* omxReader_, ofxOMXPlayerSettings&, EGLImageKHR);
     bool openDecoder();
     void close();
     

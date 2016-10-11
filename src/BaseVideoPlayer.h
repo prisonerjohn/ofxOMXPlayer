@@ -76,6 +76,6 @@ public:
     ofxOMXPlayerSettings settings;
     Component* clockComponent;
     OMXClock* omxClock;
-    
+    OMXReader* omxReader;
     void adjustFPS();
 };

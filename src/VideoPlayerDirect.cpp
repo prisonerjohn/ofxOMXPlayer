@@ -34,7 +34,7 @@ VideoPlayerDirect::~VideoPlayerDirect()
     close();
 }
 
-bool VideoPlayerDirect::open(StreamInfo hints, OMXClock* omxClock_, ofxOMXPlayerSettings& settings_)
+bool VideoPlayerDirect::open(StreamInfo hints, OMXClock* omxClock_, OMXReader* omxReader_, ofxOMXPlayerSettings& settings_)
 {
 
 	if(ThreadHandle())
@@ -54,7 +54,7 @@ bool VideoPlayerDirect::open(StreamInfo hints, OMXClock* omxClock_, ofxOMXPlayer
 	speed           = DVD_PLAYSPEED_NORMAL;
     omxClock = omxClock_;
     clockComponent = omxClock->getComponent();
-
+    omxReader = omxReader_;
     adjustFPS();
 
 	if(!openDecoder())
