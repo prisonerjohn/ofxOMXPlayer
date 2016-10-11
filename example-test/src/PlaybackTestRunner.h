@@ -13,6 +13,10 @@ public:
     bool doPause;
     bool doRestart;
     bool doStepTest;
+    bool doScrubTest;
+    int scrubCounter;
+    int stepCounter;
+
     PlaybackTestRunner()
     {
         stopAll();
@@ -25,6 +29,9 @@ public:
         doPause = false;
         doRestart = false;
         doStepTest = false;
+        doScrubTest = false;
+        stepCounter = 0;
+        scrubCounter = 0;
         pauseStartTime = 0;
         pauseComplete = false;
     }
@@ -34,12 +41,16 @@ public:
         stopAll();
         test = test_;
         doPause = true;
+        ofLog() << "STARTING PAUSE TEST";
+
     }
     void startRestartTest(BaseTest* test_)
     {
         stopAll();
         test = test_;
         doRestart = true;
+        ofLog() << "STARTING RESTART TEST";
+
     }
     
     void startStepTest(BaseTest* test_)
@@ -47,8 +58,17 @@ public:
         stopAll();
         test = test_;
         doStepTest = true;
+        ofLog() << "STARTING STEP TEST";
+
     }
-    
+    void startScrubTest(BaseTest* test_)
+    {
+        stopAll();
+        test = test_;
+        doScrubTest = true;
+        ofLog() << "STARTING SCRUB TEST";
+    }
+
     void update()
     {
         if(test)
@@ -76,16 +96,54 @@ public:
             }
             if(doStepTest)
             {
+                bool doStopStepTest = false;
                 int currentFrame = test->omxPlayer->getCurrentFrame();
-                if(currentFrame+1 < test->omxPlayer->getTotalNumFrames())
+                if(ofGetFrameNum() % 30 == 0)
                 {
-                    test->omxPlayer->stepFrameForward();
-                    ofSleepMillis(1000);
-                }else
-                {
-                    doStepTest = false;
-                    test->omxPlayer->restartMovie();
+                    ofLogVerbose() << "stepCounter: " << stepCounter << " currentFrame: " << currentFrame;
+
+                    if(currentFrame+1 < test->omxPlayer->getTotalNumFrames())
+                    {
+                        test->omxPlayer->stepFrameForward();
+                        stepCounter++;
+                        
+                    }else
+                    {
+                        doStopStepTest =true;
+                    }
+                    if(stepCounter == 10)
+                    {
+                        doStopStepTest =true;
+                    }
+                    
+                    if(doStopStepTest)
+                    {
+                        doStepTest = false;
+                        stepCounter = 0;
+                        test->omxPlayer->restartMovie();
+                    }
                 }
+                
+            }
+            if(doScrubTest)
+            {
+                int step = 10;
+                if(ofGetFrameNum() % 30 == 0)
+                {
+                    if(scrubCounter < 10)
+                    {
+                        test->omxPlayer->scrubForward(step);
+                        scrubCounter++;
+                        ofLog() << "scrubCounter: " << scrubCounter;
+                    }else
+                    {
+                        doScrubTest = false;
+                        scrubCounter = 0;
+                        ofLogVerbose(__func__) << test->name << " SCRUB TEST COMPLETE";
+                        
+                    }
+                }
+                
             }
             
         }

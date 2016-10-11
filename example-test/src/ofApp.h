@@ -141,7 +141,12 @@ public:
             {
                 playbackTestRunner.startStepTest(currentTest);
                 break;
-            }    
+            } 
+            case '4':
+            {
+                playbackTestRunner.startScrubTest(currentTest);
+                break;
+            }
                 
             case 'n':
             {
