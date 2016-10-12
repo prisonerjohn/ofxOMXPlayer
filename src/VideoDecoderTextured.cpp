@@ -39,7 +39,10 @@ int VideoDecoderTextured::getCurrentFrame()
     
     //int result =  frameCounter - frameOffset;
     //return result;
-	return renderComponent.getCurrentFrame();
+    int result = renderComponent.getCurrentFrame();
+    ofLogVerbose(__func__) << result;
+
+	return result;
 }
 void VideoDecoderTextured::resetFrameCounter()
 {

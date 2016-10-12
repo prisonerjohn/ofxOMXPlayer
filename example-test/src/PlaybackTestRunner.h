@@ -8,15 +8,25 @@ class PlaybackTestRunner
 public:
     
     BaseTest* test;
+    
+    //pause test
     int pauseStartTime;
-    bool pauseComplete;
     bool doPause;
     bool doRestart;
+
+    //step test
     bool doStepTest;
-    bool doScrubTest;
-    int scrubCounter;
     int stepCounter;
 
+    //scrub test
+    bool doScrubTest;
+    int scrubCounter;
+    
+    //volume test
+    bool doVolumeTest;
+    bool increaseTestComplete;
+    bool decreaseTestComplete;
+    
     PlaybackTestRunner()
     {
         stopAll();
@@ -33,7 +43,10 @@ public:
         stepCounter = 0;
         scrubCounter = 0;
         pauseStartTime = 0;
-        pauseComplete = false;
+        doVolumeTest = false;
+        increaseTestComplete = false;
+        decreaseTestComplete = false;
+        
     }
     
     void startPauseTest(BaseTest* test_)
@@ -68,7 +81,13 @@ public:
         doScrubTest = true;
         ofLog() << "STARTING SCRUB TEST";
     }
-
+    void startVolumeTest(BaseTest* test_)
+    {
+        stopAll();
+        test = test_;
+        doVolumeTest = true;
+        ofLog() << "STARTING VOLUME TEST";
+    }
     void update()
     {
         if(test)
@@ -144,6 +163,50 @@ public:
                     }
                 }
                 
+            }
+            
+            if(doVolumeTest)
+            {
+                float currentVolume = test->omxPlayer->getVolume();
+                if(ofGetFrameNum() % 30 == 0)
+                {
+
+                    if(!increaseTestComplete)
+                    {
+                        ofLog() << "increaseTestComplete: " << increaseTestComplete << "currentVolume: " << currentVolume;
+                        if(currentVolume < 1)
+                        {
+                            test->omxPlayer->increaseVolume();
+                            currentVolume = test->omxPlayer->getVolume();
+                            if(currentVolume >= 1)
+                            {
+                                increaseTestComplete = true;
+                            }
+                        }
+                    }else
+                    {
+                        ofLog() << "decreaseTestComplete: " << decreaseTestComplete << "currentVolume: " << currentVolume;
+
+                        if(!decreaseTestComplete)
+                        {
+                            currentVolume = test->omxPlayer->getVolume();
+                            if(currentVolume >= 0)
+                            {
+                                test->omxPlayer->decreaseVolume();
+                                currentVolume = test->omxPlayer->getVolume();
+                                if(currentVolume <= 0)
+                                {
+                                    decreaseTestComplete = true;
+                                }
+                            }
+                        }
+                    }
+                    if(decreaseTestComplete && increaseTestComplete)
+                    {
+                        test->omxPlayer->setVolume(0.5);
+                        doVolumeTest = false;
+                    }
+                }
             }
             
         }

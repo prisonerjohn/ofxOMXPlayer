@@ -287,6 +287,7 @@ int VideoDecoderDirect::getCurrentFrame()
     //ofLogVerbose(__func__) << "frameCounter: " << frameCounter << " frameOffset: " << frameOffset;
     uint64_t currentTime = omxClock->getMediaTime();
     int result = (currentTime*streamInfo.fpsrate)/AV_TIME_BASE;
+    ofLogVerbose(__func__) << "currentTime: " << currentTime << " result: " << result;
     return result;
 }
 

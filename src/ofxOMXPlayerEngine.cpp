@@ -1,11 +1,11 @@
 #include "ofxOMXPlayerEngine.h"
 
 
-#if OMX_LOG_LEVEL > OMX_LOG_LEVEL_ERROR_ONLY
+//#if OMX_LOG_LEVEL > OMX_LOG_LEVEL_ERROR_ONLY
 #define ENGINE_LOG(x)  ofLogVerbose(__func__) << ofToString(x);
-#else
-#define ENGINE_LOG(x)
-#endif
+//#else
+//#define ENGINE_LOG(x)
+//#endif
 
 #define LOOP_LOG(x) 
 //#define LOOP_LOG(x)  ofLogVerbose(__func__) << __LINE__ << x;
@@ -51,7 +51,7 @@ ofxOMXPlayerEngine::ofxOMXPlayerEngine()
     
     eglImage = NULL;
     doRestart = false;
-    
+    doOnLoop = false;
     
 }
 
@@ -275,7 +275,7 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
 }
 
 
-bool doOnLoop = false;
+
 
 #pragma mark threading
 void ofxOMXPlayerEngine::process()
@@ -284,7 +284,7 @@ void ofxOMXPlayerEngine::process()
     {
         //ofLogVerbose(__func__) << OMXReader::packetsAllocated << " packetsFreed: " << OMXReader::packetsFreed << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed);
         //ofLogVerbose(__func__) << " remaining packets: " << remainingPackets;
-        //ofLogVerbose(__func__) << " currentFrame " << getCurrentFrame() << " of " << getTotalNumFrames();
+        ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
         if(getCurrentFrame() && getCurrentFrame()>=getTotalNumFrames())
         {
             if(doLooping)

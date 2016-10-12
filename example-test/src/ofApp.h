@@ -147,6 +147,11 @@ public:
                 playbackTestRunner.startScrubTest(currentTest);
                 break;
             }
+            case '5':
+            {
+                playbackTestRunner.startVolumeTest(currentTest);
+                break;
+            }
                 
             case 'n':
             {
