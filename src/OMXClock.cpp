@@ -74,7 +74,7 @@ bool OMXClock::init(bool has_video, bool has_audio)
 
 Component* OMXClock::getComponent()
 {
-    if(!clockComponent.getHandle())
+    if(!clockComponent.handle)
     {
         ofLogError(__func__) << "NO CLOCK YET";
         return NULL;
@@ -85,7 +85,7 @@ Component* OMXClock::getComponent()
 
 bool  OMXClock::stop()
 {
-    if(clockComponent.getHandle() == NULL)
+    if(clockComponent.handle == NULL)
     {
         ofLogError(__func__) << "NO CLOCK YET";
         return false;
@@ -117,7 +117,7 @@ bool  OMXClock::stop()
 
 bool OMXClock::start(double pts)
 {
-    if(clockComponent.getHandle() == NULL)
+    if(clockComponent.handle == NULL)
     {
         ofLogError(__func__) << "NO CLOCK YET";
         return false;
@@ -153,7 +153,7 @@ bool OMXClock::start(double pts)
 
 bool OMXClock::step(int steps)
 {
-    if(clockComponent.getHandle() == NULL)
+    if(clockComponent.handle == NULL)
     {
         ofLogError(__func__) << "NO CLOCK YET";
         return false;
@@ -183,7 +183,7 @@ bool OMXClock::step(int steps)
 
 bool OMXClock::reset()
 {
-    if(clockComponent.getHandle() == NULL)
+    if(clockComponent.handle == NULL)
     {
         ofLogError(__func__) << "NO CLOCK YET";
         return false;
@@ -201,7 +201,7 @@ bool OMXClock::reset()
 
 int64_t OMXClock::getMediaTime()
 {
-    if(clockComponent.getHandle() == NULL)
+    if(clockComponent.handle == NULL)
     {
         ofLogError(__func__) << "NO CLOCK YET";
         return 0;
@@ -214,7 +214,7 @@ int64_t OMXClock::getMediaTime()
 
     OMX_TIME_CONFIG_TIMESTAMPTYPE timeStamp;
     OMX_INIT_STRUCTURE(timeStamp);
-    timeStamp.nPortIndex = clockComponent.getInputPort();
+    timeStamp.nPortIndex = clockComponent.inputPort;
 
     error = clockComponent.getConfig(OMX_IndexConfigTimeCurrentMediaTime, &timeStamp);
     OMX_TRACE(error);
@@ -235,7 +235,7 @@ int64_t OMXClock::getMediaTime()
 // useful after a seek so mediatime is updated immediately (rather than waiting for first decoded packet)
 bool OMXClock::setMediaTime(double pts)
 {
-    if(clockComponent.getHandle() == NULL)
+    if(clockComponent.handle == NULL)
     {
         ofLogError(__func__) << "NO CLOCK YET";
         return false;
@@ -247,7 +247,7 @@ bool OMXClock::setMediaTime(double pts)
     OMX_INDEXTYPE index;
     OMX_TIME_CONFIG_TIMESTAMPTYPE timeStamp;
     OMX_INIT_STRUCTURE(timeStamp);
-    timeStamp.nPortIndex = clockComponent.getInputPort();
+    timeStamp.nPortIndex = clockComponent.inputPort;
 
     if(hasAudio)
     {
@@ -277,7 +277,7 @@ bool OMXClock::setMediaTime(double pts)
 bool OMXClock::pause()
 {
 
-    if(clockComponent.getHandle() == NULL)
+    if(clockComponent.handle == NULL)
     {
         ofLogError(__func__) << "NO CLOCK YET";
         return false;
@@ -301,7 +301,7 @@ bool OMXClock::pause()
 
 bool OMXClock::resume()
 {
-    if(clockComponent.getHandle() == NULL)
+    if(clockComponent.handle == NULL)
     {
         ofLogError(__func__) << "NO CLOCK YET";
         return false;
@@ -327,7 +327,7 @@ bool OMXClock::resume()
 bool OMXClock::setSpeed(int speed, bool doResume /* = false */)
 {
     ofLogVerbose(__func__) << "speed: " << speed << " doResume: " << doResume;
-    if(clockComponent.getHandle() == NULL)
+    if(clockComponent.handle == NULL)
     {
         ofLogError(__func__) << "NO CLOCK YET";
         return false;
@@ -381,7 +381,7 @@ bool OMXClock::setSpeed(int speed, bool doResume /* = false */)
 
 bool OMXClock::enableHDMISync()
 {
-    if(clockComponent.getHandle() == NULL)
+    if(clockComponent.handle == NULL)
     {
         ofLogError(__func__) << "NO CLOCK YET";
         return false;

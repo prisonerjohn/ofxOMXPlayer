@@ -36,12 +36,11 @@ Component::Component()
 	inputPort  = 0;
 	outputPort = 0;
 	handle      = NULL;
+    listener=NULL;
     m_input_buffer_size = 0;
 	
 	doFlushInput         = false;
 
-	CustomFillBufferDoneHandler = NULL;
-	CustomEmptyBufferDoneHandler = NULL;
 
 	m_eos                 = false;
 
@@ -61,7 +60,7 @@ Component::Component()
 
 Component::~Component()
 {
-    COMPONENT_LOG(getName())
+    COMPONENT_LOG(name)
     OMX_ERRORTYPE error;
 
     if(handle)
@@ -80,7 +79,7 @@ Component::~Component()
     }
     inputBuffers.clear();
     
-    //if(componentName != "OMX.broadcom.video_decode")
+    //if(name != "OMX.broadcom.video_decode")
     //{
         
     if (doFreeHandle) 
@@ -88,7 +87,7 @@ Component::~Component()
         
         error = OMX_FreeHandle(handle);
         OMX_TRACE(error); 
-        COMPONENT_LOG(componentName+" FREED");
+        COMPONENT_LOG(name+" FREED");
     }else
     {
         
@@ -114,7 +113,7 @@ Component::~Component()
         disableAllPorts();
         //error = OMX_FreeHandle(handle);
         //OMX_TRACE(error); 
-        //ofLogVerbose(__func__) << info.str() << " " << componentName << " FREED";
+        //ofLogVerbose(__func__) << info.str() << " " << name << " FREED";
 
     }
 
@@ -186,7 +185,7 @@ OMX_ERRORTYPE Component::EmptyThisBuffer(OMX_BUFFERHEADERTYPE *omxBuffer)
 {
     if(!handle) 
 {
-	ofLogError(__func__) << getName() << " NO HANDLE";
+	ofLogError(__func__) << name << " NO HANDLE";
 	return OMX_ErrorNone;
 }
 
@@ -204,7 +203,7 @@ OMX_ERRORTYPE Component::FillThisBuffer(OMX_BUFFERHEADERTYPE *omxBuffer)
 {
     if(!handle) 
 {
-	ofLogError(__func__) << getName() << " NO HANDLE";
+	ofLogError(__func__) << name << " NO HANDLE";
 	return OMX_ErrorNone;
 }
 
@@ -223,7 +222,7 @@ OMX_ERRORTYPE Component::FreeOutputBuffer(OMX_BUFFERHEADERTYPE *omxBuffer)
 {
     if(!handle) 
 {
-	ofLogError(__func__) << getName() << " NO HANDLE";
+	ofLogError(__func__) << name << " NO HANDLE";
 	return OMX_ErrorNone;
 }
     
@@ -249,13 +248,13 @@ void Component::flushInput()
 {
 	if(!handle) 
     {
-        ofLogError(__func__) << getName() << " NO HANDLE";
+        ofLogError(__func__) << name << " NO HANDLE";
     }
 	lock();
 
 	OMX_ERRORTYPE error = OMX_ErrorNone;
 	error = OMX_SendCommand(handle, OMX_CommandFlush, inputPort, NULL);
-    OMX_TRACE(error, getName());
+    OMX_TRACE(error, name);
 	
 	unlock();
 }
@@ -264,13 +263,13 @@ void Component::flushOutput()
 {
     if(!handle) 
     {
-        ofLogError(__func__) << getName() << " NO HANDLE";
+        ofLogError(__func__) << name << " NO HANDLE";
     }
 	lock();
 
 	OMX_ERRORTYPE error = OMX_ErrorNone;
 	error = OMX_SendCommand(handle, OMX_CommandFlush, outputPort, NULL);
-	OMX_TRACE(error, getName());
+	OMX_TRACE(error, name);
     
 
 	unlock();
@@ -281,7 +280,7 @@ OMX_BUFFERHEADERTYPE* Component::getInputBuffer(long timeout)
 {
 	if(!handle) 
     {
-        ofLogError(__func__) << getName() << " NO HANDLE";
+        ofLogError(__func__) << name << " NO HANDLE";
     }
     
     OMX_BUFFERHEADERTYPE *omx_input_buffer = NULL;
@@ -303,7 +302,7 @@ OMX_BUFFERHEADERTYPE* Component::getInputBuffer(long timeout)
 		int retcode = pthread_cond_timedwait(&m_input_buffer_cond, &m_omx_input_mutex, &endtime);
 		if (retcode != 0)
 		{
-			ofLogError(__func__) << componentName << " TIMEOUT";
+			ofLogError(__func__) << name << " TIMEOUT";
 			break;
 		}
 	}
@@ -316,7 +315,7 @@ OMX_BUFFERHEADERTYPE* Component::getOutputBuffer()
 {
     if(!handle) 
     {
-        ofLogError(__func__) << getName() << " NO HANDLE";
+        ofLogError(__func__) << name << " NO HANDLE";
     }
 	OMX_BUFFERHEADERTYPE *omx_output_buffer = NULL;
 
@@ -338,7 +337,7 @@ OMX_ERRORTYPE Component::allocInputBuffers()
 
 	if(!handle) 
     {
-        ofLogError(__func__) << getName() << " NO HANDLE";
+        ofLogError(__func__) << name << " NO HANDLE";
         return OMX_ErrorNone;
     }
     
@@ -367,8 +366,8 @@ OMX_ERRORTYPE Component::allocInputBuffers()
 	{
 		return error;
 	}
-//  ofLogVerbose(__func__) << getName() << " portFormat.nBufferCountActual: " << portFormat.nBufferCountActual;
-//  ofLogVerbose(__func__) << getName() << " nBufferSize: " << portFormat.nBufferSize;
+//  ofLogVerbose(__func__) << name << " portFormat.nBufferCountActual: " << portFormat.nBufferCountActual;
+//  ofLogVerbose(__func__) << name << " nBufferSize: " << portFormat.nBufferSize;
     
 	for (size_t i = 0; i < portFormat.nBufferCountActual; i++)
 	{
@@ -394,7 +393,7 @@ OMX_ERRORTYPE Component::allocOutputBuffers()
 	
     if(!handle) 
     {
-        ofLogError(__func__) << getName() << " NO HANDLE";
+        ofLogError(__func__) << name << " NO HANDLE";
         return OMX_ErrorNone;
     }
     OMX_ERRORTYPE error = OMX_ErrorNone;
@@ -453,7 +452,7 @@ OMX_ERRORTYPE Component::enableAllPorts()
 {
     if(!handle) 
     {
-        ofLogError(__func__) << getName() << " NO HANDLE";
+        ofLogError(__func__) << name << " NO HANDLE";
         return OMX_ErrorNone;
     }
     
@@ -499,7 +498,7 @@ void Component::disableAllPorts()
 {
     if(!handle) 
     {
-        ofLogError(__func__) << getName() << " NO HANDLE";
+        ofLogError(__func__) << name << " NO HANDLE";
         return;
     }
     
@@ -577,7 +576,7 @@ OMX_ERRORTYPE Component::addEvent(OMX_EVENTTYPE eEvent, OMX_U32 nData1, OMX_U32 
 OMX_ERRORTYPE Component::waitForEvent(OMX_EVENTTYPE eventType, long timeout)
 {
 #ifdef DEBUG_EVENTS
-    ofLogVerbose(__func__) << "\n" << componentName << "\n" << "eventType: " << GetEventString(eventType) << "\n";
+    ofLogVerbose(__func__) << "\n" << name << "\n" << "eventType: " << GetEventString(eventType) << "\n";
 #endif
 
 	pthread_mutex_lock(&event_mutex);
@@ -613,7 +612,7 @@ OMX_ERRORTYPE Component::waitForEvent(OMX_EVENTTYPE eventType, long timeout)
                     {
                         #ifdef DEBUG_EVENTS
                         stringstream finishedInfo;
-                        finishedInfo << componentName << "\n";
+                        finishedInfo << name << "\n";
                         finishedInfo << "RECEIVED EVENT, REMOVING" << "\n";
                         finishedInfo << "event.eEvent: " << GetEventString(event.eEvent) << "\n";
                         finishedInfo << "event.nData1: " << event.nData1 << "\n";
@@ -631,7 +630,7 @@ OMX_ERRORTYPE Component::waitForEvent(OMX_EVENTTYPE eventType, long timeout)
         int retcode = pthread_cond_timedwait(&m_omx_event_cond, &event_mutex, &endtime);
         if (retcode != 0)
         {
-            ofLogError(__func__) << componentName << " waitForEvent Event: " << GetEventString(eventType) << " TIMED OUT at: " << timeout;
+            ofLogError(__func__) << name << " waitForEvent Event: " << GetEventString(eventType) << " TIMED OUT at: " << timeout;
             pthread_mutex_unlock(&event_mutex);
             return OMX_ErrorMax;
         }
@@ -645,7 +644,7 @@ OMX_ERRORTYPE Component::waitForEvent(OMX_EVENTTYPE eventType, long timeout)
 OMX_ERRORTYPE Component::waitForCommand(OMX_COMMANDTYPE command, OMX_U32 nData2, long timeout) //timeout default = 2000
 {
 #if defined(DEBUG_COMMANDS)
-    ofLogVerbose(__func__) << "\n" << componentName << " command " << GetOMXCommandString(command) << "\n"; 
+    ofLogVerbose(__func__) << "\n" << name << " command " << GetOMXCommandString(command) << "\n"; 
 #endif    
 	pthread_mutex_lock(&event_mutex);
 	struct timespec endtime;
@@ -671,7 +670,7 @@ OMX_ERRORTYPE Component::waitForCommand(OMX_COMMANDTYPE command, OMX_U32 nData2,
                 //Throw error
                 if(event.eEvent == OMX_EventError)
                 {     
-                    ofLogVerbose(__func__) << "\n" << componentName << " command " << GetOMXCommandString(command) << "\n"; 
+                    ofLogVerbose(__func__) << "\n" << name << " command " << GetOMXCommandString(command) << "\n"; 
                     OMX_TRACE((OMX_ERRORTYPE)event.nData1);
                     omxEvents.erase(it);
                     pthread_mutex_unlock(&event_mutex);
@@ -694,7 +693,7 @@ OMX_ERRORTYPE Component::waitForCommand(OMX_COMMANDTYPE command, OMX_U32 nData2,
 		if (retcode != 0)
 		{
             stringstream ss;
-            ss << componentName << " TIMEOUT" << endl;
+            ss << name << " TIMEOUT" << endl;
             ss << GetEventString(eEvent) << endl;
             ss << GetOMXCommandString(command) << endl;
             ss << nData2 << endl;
@@ -732,17 +731,14 @@ bool Component::tunnelToNull(int port)
 {
     bool result = false;
     OMX_ERRORTYPE error;
-    if(CustomFillBufferDoneHandler)
-    {
-        CustomFillBufferDoneHandler = NULL;
-    }
+
     
     if(setToStateIdle())
     {
         disableAllPorts();
-        if(getName() != "OMX.broadcom.clock" &&
-           getName() != "OMX.broadcom.audio_render" &&
-           getName() != "OMX.broadcom.audio_mixer")
+        if(name != "OMX.broadcom.clock" &&
+           name != "OMX.broadcom.audio_render" &&
+           name != "OMX.broadcom.audio_mixer")
         {
             error = OMX_SetupTunnel(handle, port, NULL, 0);
             OMX_TRACE(error);
@@ -757,7 +753,7 @@ bool Component::tunnelToNull(int port)
         
         
     }
-    COMPONENT_LOG(getName() + " TUNNELED TO NULL: " + ofToString(result));
+    COMPONENT_LOG(name + " TUNNELED TO NULL: " + ofToString(result));
     return result;
     
 }
@@ -792,7 +788,7 @@ bool Component::setToStateIdle()
         }
     }
 #if defined(DEBUG_STATES)
-    ofLogVerbose(__func__) << getName() << " RESULT: " << result;
+    ofLogVerbose(__func__) << name << " RESULT: " << result;
 #endif
     return result;
 }
@@ -834,7 +830,7 @@ bool Component::setToStateLoaded()
         }
     }
 #if defined(DEBUG_STATES)
-    ofLogVerbose(__func__) << getName() << " RESULT: " << result;
+    ofLogVerbose(__func__) << name << " RESULT: " << result;
 #endif
     return result;
 }
@@ -844,26 +840,26 @@ OMX_ERRORTYPE Component::setState(OMX_STATETYPE state)
 {
     if(!handle) 
     {
-        ofLogError(__func__) << getName() << " NO HANDLE";
+        ofLogError(__func__) << name << " NO HANDLE";
         return OMX_ErrorNone;
     }
     
     lock();
 #if defined(DEBUG_STATES)
-    ofLogVerbose(__func__) << getName() << " state requested " << GetOMXStateString(state)  << " BEGIN";
+    ofLogVerbose(__func__) << name << " state requested " << GetOMXStateString(state)  << " BEGIN";
 #endif
     OMX_ERRORTYPE error = OMX_ErrorNone;
     OMX_STATETYPE state_actual;
     error = OMX_GetState(handle, &state_actual);
     OMX_TRACE(error);
     
-    //ofLogVerbose(__func__) << getName() << " state requested " << GetOMXStateString(state) << " state_actual: " << GetOMXStateString(state_actual);
+    //ofLogVerbose(__func__) << name << " state requested " << GetOMXStateString(state) << " state_actual: " << GetOMXStateString(state_actual);
     
     
     if(state == state_actual)
     {
 #if defined(DEBUG_STATES)
-        ofLogVerbose(__func__) << getName() << " state requested " << GetOMXStateString(state)  << " END SAME STATE";
+        ofLogVerbose(__func__) << name << " state requested " << GetOMXStateString(state)  << " END SAME STATE";
 #endif
         unlock();
         return OMX_ErrorNone;
@@ -884,7 +880,7 @@ OMX_ERRORTYPE Component::setState(OMX_STATETYPE state)
     else
     {
         
-        if(componentName == "OMX.broadcom.audio_mixer")
+        if(name == "OMX.broadcom.audio_mixer")
         {
             error = OMX_ErrorNone;
         }
@@ -906,7 +902,7 @@ OMX_ERRORTYPE Component::setState(OMX_STATETYPE state)
     }
     stringstream info;
     info << endl;
-    info << getName() << endl;
+    info << name << endl;
     info << "currentState: " <<  GetOMXStateString(currentState) << endl;
     info << "requestedState: " <<  GetOMXStateString(state) << endl;
     info << "error: " <<  GetOMXErrorString(error) << endl;
@@ -978,7 +974,7 @@ OMX_ERRORTYPE Component::enablePort(unsigned int port)//default: wait=false
 {
 	lock();
 #if defined(DEBUG_PORTS)
-    ofLogVerbose(__func__) << componentName << " port: " << port;
+    ofLogVerbose(__func__) << name << " port: " << port;
 #endif
     OMX_ERRORTYPE error;
     error = OMX_SendCommand(handle, OMX_CommandPortEnable, port, NULL);
@@ -991,7 +987,7 @@ OMX_ERRORTYPE Component::disablePort(unsigned int port)//default: wait=false
 {
 	lock();
 #if defined(DEBUG_PORTS)
-    ofLogVerbose(__func__) << componentName << " port: " << port;
+    ofLogVerbose(__func__) << name << " port: " << port;
 #endif
     
     OMX_ERRORTYPE error;
@@ -1015,7 +1011,7 @@ OMX_ERRORTYPE Component::useEGLImage(OMX_BUFFERHEADERTYPE** ppBufferHdr, OMX_U32
 bool Component::init( std::string& component_name, OMX_INDEXTYPE index)
 {
 
-	componentName = component_name;
+	name = component_name;
 
 	callbacks.EventHandler    = &Component::EventHandlerCallback;
 	callbacks.EmptyBufferDone = &Component::EmptyBufferDoneCallback;
@@ -1027,7 +1023,7 @@ bool Component::init( std::string& component_name, OMX_INDEXTYPE index)
     
 	if (error != OMX_ErrorNone)
 	{
-        ofLogError(__func__) << componentName << " FAIL ";
+        ofLogError(__func__) << name << " FAIL ";
 		return false;
 	}
     
@@ -1045,7 +1041,7 @@ bool Component::init( std::string& component_name, OMX_INDEXTYPE index)
 	inputPort  = port_param.nStartPortNumber;
 	outputPort = inputPort + 1;
 
-	if(componentName == "OMX.broadcom.audio_mixer")
+	if(name == "OMX.broadcom.audio_mixer")
 	{
 		inputPort  = 232;
 		outputPort = 231;
@@ -1063,7 +1059,7 @@ OMX_ERRORTYPE Component::freeInputBuffers()
 {
     if(!handle) 
     {
-        ofLogError(__func__) << getName() << " NO HANDLE";
+        ofLogError(__func__) << name << " NO HANDLE";
         return OMX_ErrorNone;
     }
     
@@ -1107,7 +1103,7 @@ OMX_ERRORTYPE Component::freeOutputBuffers()
 {
     if(!handle) 
 {
-	ofLogError(__func__) << getName() << " NO HANDLE";
+	ofLogError(__func__) << name << " NO HANDLE";
 	return OMX_ErrorNone;
 }
     
@@ -1160,7 +1156,7 @@ OMX_ERRORTYPE Component::EventHandlerCallback(OMX_HANDLETYPE hComponent,
         return error;
     }
 
-	Component* component = static_cast<Component*>(pAppData);
+	Component* component = (Component*)(pAppData);
     component->addEvent(event, nData1, nData2);
     bool resourceError = false;
     if(event == OMX_EventError)
@@ -1169,13 +1165,13 @@ OMX_ERRORTYPE Component::EventHandlerCallback(OMX_HANDLETYPE hComponent,
         if(errorMessage == "OMX_ErrorSameState")
         {
             #if defined(DEBUG_STATES)
-                ofLogVerbose(__func__) << component->getName() << " error: " << errorMessage;
+                ofLogVerbose(__func__) << component->name << " error: " << errorMessage;
             #endif
                 
         }else
         {
 #if defined(DEBUG_EVENTS)
-            ofLogVerbose(__func__) << component->getName() << " error: " << errorMessage;
+            ofLogVerbose(__func__) << component->name << " error: " << errorMessage;
 #endif
         }        
         //OMX_TRACE((OMX_ERRORTYPE) nData1);
@@ -1232,25 +1228,16 @@ OMX_ERRORTYPE Component::EmptyBufferDoneCallback(OMX_HANDLETYPE hComponent,
         return error;
     }
 
-	Component *component = static_cast<Component*>(pAppData);
-    //ofLogVerbose(__func__) << component->componentName << " emptyBufferCounter: " << component->emptyBufferCounter;
-    component->emptyBufferCounter++;
-	if(component->CustomEmptyBufferDoneHandler)
-	{
-		error = (*(component->CustomEmptyBufferDoneHandler))(hComponent, pAppData, pBuffer);
-        
-	}else
-    {
-        pthread_mutex_lock(&component->m_omx_input_mutex);
-        component->inputBuffersAvailable.push(pBuffer);
-        
-        // this allows (all) blocked tasks to be awoken
-        pthread_cond_broadcast(&component->m_input_buffer_cond);
-        
-        pthread_mutex_unlock(&component->m_omx_input_mutex);
-    }
+	Component *component = (Component*)(pAppData);
+    pthread_mutex_lock(&component->m_omx_input_mutex);
+    component->inputBuffersAvailable.push(pBuffer);
+    
+    // this allows (all) blocked tasks to be awoken
+    pthread_cond_broadcast(&component->m_input_buffer_cond);
+    
+    pthread_mutex_unlock(&component->m_omx_input_mutex);
 
-    OMX_TRACE(error, component->getName());
+    OMX_TRACE(error, component->name);
     return error;
 }
 
@@ -1266,13 +1253,13 @@ OMX_ERRORTYPE Component::FillBufferDoneCallback(OMX_HANDLETYPE hComponent,
 		return error;
 	}
 
-	Component* component = static_cast<Component*>(pAppData);
-    //ofLogVerbose(__func__) << component->componentName << " fillBufferCounter: " << component->fillBufferCounter;
+	Component* component = (Component*)(pAppData);
+    //ofLogVerbose(__func__) << component->name << " fillBufferCounter: " << component->fillBufferCounter;
 
     component->fillBufferCounter++;
-	if(component->CustomFillBufferDoneHandler)
+	if(component->listener)
 	{
-		error = (*(component->CustomFillBufferDoneHandler))(hComponent, pAppData, pBuffer);
+        error = component->listener->onFillBuffer(component, pBuffer);
         OMX_TRACE(error);
         
 	}else
@@ -1290,7 +1277,7 @@ OMX_ERRORTYPE Component::FillBufferDoneCallback(OMX_HANDLETYPE hComponent,
     
     if (error == OMX_ErrorIncorrectStateOperation) 
     {
-        ofLogError() << component->getName() << " THREW OMX_ErrorIncorrectStateOperation";
+        ofLogError() << component->name << " THREW OMX_ErrorIncorrectStateOperation";
     }
 	return error;
 }

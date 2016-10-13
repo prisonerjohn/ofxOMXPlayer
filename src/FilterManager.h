@@ -27,7 +27,7 @@ public:
     {
         imageFXComponent = imageFXComponent_;
         OMX_INIT_STRUCTURE(imagefilterConfig);
-        imagefilterConfig.nPortIndex = imageFXComponent->getOutputPort();
+        imagefilterConfig.nPortIndex = imageFXComponent->outputPort;
         
     }
     void setFilter(OMX_IMAGEFILTERTYPE imageFilter_)

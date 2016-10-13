@@ -332,7 +332,7 @@ bool OMXAudioDecoder::init(string device,
     // set up the number/size of buffers
     OMX_PARAM_PORTDEFINITIONTYPE port_param;
     OMX_INIT_STRUCTURE(port_param);
-    port_param.nPortIndex = decoderComponent.getInputPort();
+    port_param.nPortIndex = decoderComponent.inputPort;
 
     error = decoderComponent.getParameter(OMX_IndexParamPortDefinition, &port_param);
     OMX_TRACE(error);
@@ -355,7 +355,7 @@ bool OMXAudioDecoder::init(string device,
     
     clockComponent = clockComponent_;
 
-    clockTunnel.init(clockComponent, clockComponent->getInputPort(), &renderComponent, renderComponent.getInputPort()+1);
+    clockTunnel.init(clockComponent, clockComponent->inputPort, &renderComponent, renderComponent.inputPort+1);
 
     error = clockTunnel.Establish(false);
     OMX_TRACE(error);
@@ -380,7 +380,7 @@ bool OMXAudioDecoder::init(string device,
          return false;
     }
 
-    decoderTunnel.init(&decoderComponent, decoderComponent.getOutputPort(), &mixerComponent, mixerComponent.getInputPort());
+    decoderTunnel.init(&decoderComponent, decoderComponent.outputPort, &mixerComponent, mixerComponent.inputPort);
     error = decoderTunnel.Establish(false);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone)
@@ -395,7 +395,7 @@ bool OMXAudioDecoder::init(string device,
         return false;
     }
     
-    mixerTunnel.init(&mixerComponent, mixerComponent.getOutputPort(), &renderComponent, renderComponent.getInputPort());
+    mixerTunnel.init(&mixerComponent, mixerComponent.outputPort, &renderComponent, renderComponent.inputPort);
     error = mixerTunnel.Establish(false);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone)
@@ -657,7 +657,7 @@ bool OMXAudioDecoder::setCurrentVolume(long nVolume)
 
         OMX_CONFIG_BRCMAUDIODOWNMIXCOEFFICIENTS mix;
         OMX_INIT_STRUCTURE(mix);
-        mix.nPortIndex = mixerComponent.getInputPort();
+        mix.nPortIndex = mixerComponent.inputPort;
 
         if(sizeof(mix.coeff)/sizeof(mix.coeff[0]) == 16)
         {
@@ -682,7 +682,7 @@ bool OMXAudioDecoder::setCurrentVolume(long nVolume)
 
         OMX_AUDIO_CONFIG_VOLUMETYPE volume;
         OMX_INIT_STRUCTURE(volume);
-        volume.nPortIndex = renderComponent.getInputPort();
+        volume.nPortIndex = renderComponent.inputPort;
 
         volume.sVolume.nValue = nVolume;
 
@@ -794,13 +794,13 @@ unsigned int OMXAudioDecoder::addPackets(void* data, unsigned int len, double dt
             isFirstFrame = false;
             renderComponent.waitForEvent(OMX_EventPortSettingsChanged);
 
-            renderComponent.disablePort(renderComponent.getInputPort());
-            mixerComponent.disablePort(mixerComponent.getOutputPort());
-            mixerComponent.disablePort(mixerComponent.getInputPort());
-            decoderComponent.disablePort(decoderComponent.getOutputPort());
+            renderComponent.disablePort(renderComponent.inputPort);
+            mixerComponent.disablePort(mixerComponent.outputPort);
+            mixerComponent.disablePort(mixerComponent.inputPort);
+            decoderComponent.disablePort(decoderComponent.outputPort);
 
             /* setup mixer input */
-            pcm_input.nPortIndex      = mixerComponent.getInputPort();
+            pcm_input.nPortIndex      = mixerComponent.inputPort;
             error = mixerComponent.setParameter(OMX_IndexParamAudioPcm, &pcm_input);
             OMX_TRACE(error);
             
@@ -808,14 +808,14 @@ unsigned int OMXAudioDecoder::addPackets(void* data, unsigned int len, double dt
             OMX_TRACE(error);
             
             /* setup mixer output */
-            pcm_output.nPortIndex      = mixerComponent.getOutputPort();
+            pcm_output.nPortIndex      = mixerComponent.outputPort;
             error = mixerComponent.setParameter(OMX_IndexParamAudioPcm, &pcm_output);
             OMX_TRACE(error);
             
             error = mixerComponent.getParameter(OMX_IndexParamAudioPcm, &pcm_output);
             OMX_TRACE(error);
             
-            pcm_output.nPortIndex      = renderComponent.getInputPort();
+            pcm_output.nPortIndex      = renderComponent.inputPort;
             error = renderComponent.setParameter(OMX_IndexParamAudioPcm, &pcm_output);
             OMX_TRACE(error);
             
@@ -825,10 +825,10 @@ unsigned int OMXAudioDecoder::addPackets(void* data, unsigned int len, double dt
             printPCM(&pcm_input);
             printPCM(&pcm_output);
 #endif
-            renderComponent.enablePort(renderComponent.getInputPort());
-            mixerComponent.enablePort(mixerComponent.getOutputPort());
-            mixerComponent.enablePort(mixerComponent.getInputPort());
-            decoderComponent.enablePort(decoderComponent.getOutputPort());
+            renderComponent.enablePort(renderComponent.inputPort);
+            mixerComponent.enablePort(mixerComponent.outputPort);
+            mixerComponent.enablePort(mixerComponent.inputPort);
+            decoderComponent.enablePort(decoderComponent.outputPort);
         }
 
     }
@@ -852,7 +852,7 @@ unsigned int OMXAudioDecoder::GetAudioRenderingLatency()
 {
     OMX_PARAM_U32TYPE param;
     OMX_INIT_STRUCTURE(param);
-    param.nPortIndex = renderComponent.getInputPort();
+    param.nPortIndex = renderComponent.inputPort;
 
     OMX_ERRORTYPE error = renderComponent.getConfig(OMX_IndexConfigAudioRenderingLatency, &param);
     OMX_TRACE(error);

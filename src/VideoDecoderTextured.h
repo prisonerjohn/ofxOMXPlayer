@@ -4,7 +4,7 @@
 #include "ofAppEGLWindow.h"
 #include "BaseVideoDecoder.h"
 
-class VideoDecoderTextured : public BaseVideoDecoder
+class VideoDecoderTextured : public BaseVideoDecoder, public ComponentListener
 {
 public:
     VideoDecoderTextured();
@@ -14,7 +14,7 @@ public:
         
     int getCurrentFrame();
     void resetFrameCounter();
-    static OMX_ERRORTYPE onRenderFillBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
+    OMX_ERRORTYPE onFillBuffer(Component*, OMX_BUFFERHEADERTYPE*);
 
 private:
     int frameCounter;

@@ -56,7 +56,7 @@ public:
         }
 
         
-        omxConfig.nPortIndex = renderComponent->getInputPort();
+        omxConfig.nPortIndex = renderComponent->inputPort;
         
         
     

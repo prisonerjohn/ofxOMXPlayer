@@ -389,7 +389,7 @@ bool BaseVideoDecoder::EOS()
 
 bool BaseVideoDecoder::pause()
 {
-	if(renderComponent.getHandle() == NULL)
+	if(renderComponent.handle == NULL)
 	{
 		return false;
 	}
@@ -409,7 +409,7 @@ bool BaseVideoDecoder::pause()
 
 bool BaseVideoDecoder::resume()
 {
-	if(renderComponent.getHandle() == NULL)
+	if(renderComponent.handle == NULL)
 	{
 		return false;
 	}

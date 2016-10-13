@@ -7,6 +7,19 @@
 #include "XMemUtils.h"
 
 
+class Component;
+
+class ComponentListener
+{
+public:
+    
+    virtual OMX_ERRORTYPE onFillBuffer(Component*, OMX_BUFFERHEADERTYPE*)=0;
+    //virtual OMX_ERRORTYPE onEmptyBuffer(Component*, OMX_BUFFERHEADERTYPE*)=0;
+    
+};
+
+
+
 struct OMXEvent
 {
     OMX_EVENTTYPE eEvent;
@@ -20,24 +33,7 @@ class Component
 public:
     Component();
     ~Component();
-    
-    OMX_HANDLETYPE getHandle()
-    {
-        return handle;
-    };
-    unsigned int getInputPort()
-    {
-        return inputPort;
-    };
-    unsigned int getOutputPort()
-    {
-        return outputPort;
-    };
-    string getName()
-    {
-        return componentName;
-    };
-    
+    ComponentListener* listener;
     OMX_ERRORTYPE enableAllPorts();
     void disableAllPorts();
     void          removeEvent(OMX_EVENTTYPE eEvent, OMX_U32 nData1, OMX_U32 nData2);
@@ -91,9 +87,6 @@ public:
     };
     void setEOS(bool isEndOfStream);
     
-    //additional event handlers
-    OMX_ERRORTYPE (*CustomFillBufferDoneHandler)(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
-    OMX_ERRORTYPE (*CustomEmptyBufferDoneHandler)(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
     
     
     
@@ -109,11 +102,14 @@ public:
     
     int emptyBufferCounter;
     int fillBufferCounter;
-private:
+    
     OMX_HANDLETYPE handle;
-    string componentName;
+    string name;
     unsigned int inputPort;
     unsigned int outputPort;
+private:
+
+
     
     pthread_mutex_t	m_lock;
     pthread_mutex_t	event_mutex;

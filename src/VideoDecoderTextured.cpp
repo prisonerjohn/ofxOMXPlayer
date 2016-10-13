@@ -11,18 +11,12 @@ VideoDecoderTextured::VideoDecoderTextured()
 
 
 
-OMX_ERRORTYPE VideoDecoderTextured::onRenderFillBufferDone(OMX_HANDLETYPE hComponent,
-                               OMX_PTR pAppData,
-                               OMX_BUFFERHEADERTYPE* pBuffer)
-{
-
-	Component *component = static_cast<Component*>(pAppData);
-	
-	OMX_ERRORTYPE didFillBuffer = OMX_FillThisBuffer(hComponent, pBuffer);
+OMX_ERRORTYPE VideoDecoderTextured::onFillBuffer(Component* component, OMX_BUFFERHEADERTYPE* pBuffer)
+{	
+	OMX_ERRORTYPE didFillBuffer = OMX_FillThisBuffer(component->handle, pBuffer);
 		
 	if (didFillBuffer == OMX_ErrorNone)
 	{
-	
 		component->incrementFrameCounter();
 	}
 
@@ -84,7 +78,6 @@ bool VideoDecoderTextured::open(StreamInfo streamInfo_, OMXClock* omxClock_, ofx
 	{
 		return false;
 	}
-    //decoderComponent.CustomEmptyBufferDoneHandler = &VideoDecoderTextured::onDecoderEmptyBufferDone;
     
 	componentName = "OMX.broadcom.egl_render";
 	if(!renderComponent.init(componentName, OMX_IndexParamVideoInit))
@@ -117,7 +110,7 @@ bool VideoDecoderTextured::open(StreamInfo streamInfo_, OMXClock* omxClock_, ofx
         OMX_PARAM_PORTDEFINITIONTYPE portFormat;
         OMX_INIT_STRUCTURE(portFormat);
         
-        portFormat.nPortIndex = imageFXComponent.getOutputPort();
+        portFormat.nPortIndex = imageFXComponent.outputPort;
         error = imageFXComponent.getParameter(OMX_IndexParamPortDefinition, &portFormat);
         OMX_TRACE(error);
         ofLogVerbose() << "nBufferCountActual: " << portFormat.nBufferCountActual;
@@ -153,32 +146,32 @@ bool VideoDecoderTextured::open(StreamInfo streamInfo_, OMXClock* omxClock_, ofx
         OMX_TRACE(error);
      
         decoderTunnel.init(&decoderComponent, 
-                           decoderComponent.getOutputPort(), 
+                           decoderComponent.outputPort, 
                            &imageFXComponent, 
-                           imageFXComponent.getInputPort());
+                           imageFXComponent.inputPort);
         
         imageFXTunnel.init(&imageFXComponent, 
-                           imageFXComponent.getOutputPort(), 
+                           imageFXComponent.outputPort, 
                            &schedulerComponent, 
-                           schedulerComponent.getInputPort());
+                           schedulerComponent.inputPort);
     }
     else
     {
         decoderTunnel.init(&decoderComponent, 
-                           decoderComponent.getOutputPort(), 
+                           decoderComponent.outputPort, 
                            &schedulerComponent, 
-                           schedulerComponent.getInputPort());
+                           schedulerComponent.inputPort);
     }
     
     schedulerTunnel.init(&schedulerComponent,
-                         schedulerComponent.getOutputPort(),
+                         schedulerComponent.outputPort,
                          &renderComponent,
-                         renderComponent.getInputPort());
+                         renderComponent.inputPort);
     
     clockTunnel.init(clockComponent,
-                     clockComponent->getInputPort() + 1,
+                     clockComponent->inputPort + 1,
                      &schedulerComponent,
-                     schedulerComponent.getOutputPort() + 1);
+                     schedulerComponent.outputPort + 1);
 
     
 	error = decoderComponent.setState(OMX_StateIdle);
@@ -190,7 +183,7 @@ bool VideoDecoderTextured::open(StreamInfo streamInfo_, OMXClock* omxClock_, ofx
 
 	OMX_VIDEO_PARAM_PORTFORMATTYPE formatType;
 	OMX_INIT_STRUCTURE(formatType);
-	formatType.nPortIndex = decoderComponent.getInputPort();
+	formatType.nPortIndex = decoderComponent.inputPort;
 	formatType.eCompressionFormat = omxCodingType;
 
 	if (streamInfo.fpsscale > 0 && streamInfo.fpsrate > 0)
@@ -215,7 +208,7 @@ bool VideoDecoderTextured::open(StreamInfo streamInfo_, OMXClock* omxClock_, ofx
     
 	OMX_PARAM_PORTDEFINITIONTYPE portParam;
 	OMX_INIT_STRUCTURE(portParam);
-	portParam.nPortIndex = decoderComponent.getInputPort();
+	portParam.nPortIndex = decoderComponent.inputPort;
 
 	error = decoderComponent.getParameter(OMX_IndexParamPortDefinition, &portParam);
     OMX_TRACE(error);
@@ -250,7 +243,7 @@ bool VideoDecoderTextured::open(StreamInfo streamInfo_, OMXClock* omxClock_, ofx
 	{
 		OMX_NALSTREAMFORMATTYPE nalStreamFormat;
 		OMX_INIT_STRUCTURE(nalStreamFormat);
-		nalStreamFormat.nPortIndex = decoderComponent.getInputPort();
+		nalStreamFormat.nPortIndex = decoderComponent.inputPort;
 		nalStreamFormat.eNaluFormat = OMX_NaluFormatStartCodes;
 
 		error = decoderComponent.setParameter((OMX_INDEXTYPE)OMX_IndexParamNalStreamFormatSelect, &nalStreamFormat);
@@ -279,7 +272,7 @@ bool VideoDecoderTextured::open(StreamInfo streamInfo_, OMXClock* omxClock_, ofx
     {
         OMX_PARAM_BRCMDISABLEPROPRIETARYTUNNELSTYPE propTunnels;
         OMX_INIT_STRUCTURE(propTunnels);
-        propTunnels.nPortIndex = decoderComponent.getOutputPort();
+        propTunnels.nPortIndex = decoderComponent.outputPort;
         error = decoderComponent.getParameter(OMX_IndexParamBrcmDisableProprietaryTunnels, &propTunnels);
         OMX_TRACE(error);
         propTunnels.bUseBuffers = OMX_TRUE;
@@ -344,13 +337,13 @@ bool VideoDecoderTextured::open(StreamInfo streamInfo_, OMXClock* omxClock_, ofx
     if(error != OMX_ErrorNone) return false;
 	
 
-	renderComponent.enablePort(renderComponent.getOutputPort());
+	renderComponent.enablePort(renderComponent.outputPort);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 
 
 	OMX_BUFFERHEADERTYPE* eglBuffer = NULL;
-	error = renderComponent.useEGLImage(&eglBuffer, renderComponent.getOutputPort(), NULL, eglImage);
+	error = renderComponent.useEGLImage(&eglBuffer, renderComponent.outputPort, NULL, eglImage);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 
@@ -366,7 +359,7 @@ bool VideoDecoderTextured::open(StreamInfo streamInfo_, OMXClock* omxClock_, ofx
 	}
 
 
-	renderComponent.CustomFillBufferDoneHandler = &VideoDecoderTextured::onRenderFillBufferDone;
+    renderComponent.listener = this;
 	error = renderComponent.setState(OMX_StateExecuting);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;

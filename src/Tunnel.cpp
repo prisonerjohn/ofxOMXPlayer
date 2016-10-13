@@ -56,8 +56,8 @@ void Tunnel::init(Component *src_component, unsigned int src_port, Component *de
     destinationComponent  = destination;
     destinationPort    = dst_port;
     
-    sourceComponentName = sourceComponent->getName();
-    destinationComponentName = destinationComponent->getName();
+    sourceComponentName = sourceComponent->name;
+    destinationComponentName = destinationComponent->name;
 }
 
 OMX_ERRORTYPE Tunnel::flush()
@@ -79,7 +79,7 @@ OMX_ERRORTYPE Tunnel::flush()
 
 OMX_ERRORTYPE Tunnel::Deestablish(string caller)
 {
-    string debugString = sourceComponent->getName() + " : " + destinationComponent->getName();
+    string debugString = sourceComponent->name + " : " + destinationComponent->name;
     ofLogVerbose(__func__)<< " caller: " << caller << " components: " << debugString;
     if (!isEstablished)
     {
@@ -115,7 +115,7 @@ OMX_ERRORTYPE Tunnel::Establish(bool portSettingsChanged)
     OMX_ERRORTYPE error = OMX_ErrorNone;
     OMX_PARAM_U32TYPE param;
     OMX_INIT_STRUCTURE(param);
-    if(!sourceComponent || !destinationComponent || !sourceComponent->getHandle() || !destinationComponent->getHandle())
+    if(!sourceComponent || !destinationComponent || !sourceComponent->handle || !destinationComponent->handle)
     {
         unlock();
         return OMX_ErrorUndefined;
@@ -129,7 +129,7 @@ OMX_ERRORTYPE Tunnel::Establish(bool portSettingsChanged)
         return error;
     }
 #ifdef DEBUG_TUNNELS
-    ofLogVerbose(__func__) << sourceComponent->getName() << " TUNNELING TO " << destinationComponent->getName();
+    ofLogVerbose(__func__) << sourceComponent->name << " TUNNELING TO " << destinationComponent->name;
     ofLogVerbose(__func__) << "portSettingsChanged: " << portSettingsChanged;
 #endif
     if(portSettingsChanged)
@@ -150,7 +150,7 @@ OMX_ERRORTYPE Tunnel::Establish(bool portSettingsChanged)
     error = destinationComponent->disablePort(destinationPort);
     OMX_TRACE(error);
     
-    error = OMX_SetupTunnel(sourceComponent->getHandle(), sourcePort, destinationComponent->getHandle(), destinationPort);
+    error = OMX_SetupTunnel(sourceComponent->handle, sourcePort, destinationComponent->handle, destinationPort);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone)
     {
