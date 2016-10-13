@@ -102,10 +102,16 @@ public:
         return doLooping;
     }
     bool doRestart;
-private:
     
     
     OMXClock* omxClock;
+    
+    void updateCurrentFrame();
+    int frameCounter;
+private:
+    
+    
+    
     
     OMXPacket* packet;
     

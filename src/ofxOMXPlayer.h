@@ -91,6 +91,8 @@ public:
     void disableLooping();
     bool isLoopingEnabled();
     
+    
+    ofxOMXPlayerEngine* engine;
 private:
     vector<int> signals;
     bool openEngine(int startTimeInSeconds = 0);
@@ -102,7 +104,7 @@ private:
     
     static bool doExit;
     static void signal_handler(int signum);
-    ofxOMXPlayerEngine* engine;
+    
     
  
     EGLImageKHR     eglImage;

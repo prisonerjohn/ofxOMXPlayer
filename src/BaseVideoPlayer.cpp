@@ -77,24 +77,6 @@ unsigned int BaseVideoPlayer::getCached()
 }
 
 
-int BaseVideoPlayer::getCurrentFrame()
-{
-	if (decoder) 
-	{
-		return decoder->getCurrentFrame();
-	}
-	return 0;
-}
-
-void BaseVideoPlayer::resetFrameCounter()
-{
-	if (decoder) 
-	{
-		decoder->resetFrameCounter();
-	}
-}
-
-
 void BaseVideoPlayer::setSpeed(int speed_)
 {
 	speed = speed_;

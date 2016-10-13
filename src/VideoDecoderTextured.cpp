@@ -3,8 +3,7 @@
 
 VideoDecoderTextured::VideoDecoderTextured()
 {
-	frameCounter = 0;
-	frameOffset = 0;
+
 }
 
 
@@ -13,37 +12,11 @@ VideoDecoderTextured::VideoDecoderTextured()
 
 OMX_ERRORTYPE VideoDecoderTextured::onFillBuffer(Component* component, OMX_BUFFERHEADERTYPE* pBuffer)
 {	
-	OMX_ERRORTYPE didFillBuffer = OMX_FillThisBuffer(component->handle, pBuffer);
-		
-	if (didFillBuffer == OMX_ErrorNone)
-	{
-		component->incrementFrameCounter();
-	}
-
-	return didFillBuffer;
+	OMX_ERRORTYPE error = OMX_FillThisBuffer(component->handle, pBuffer);
+    OMX_TRACE(error);
+	return error;
 }
 
-
-
-
-
-int VideoDecoderTextured::getCurrentFrame()
-{
-    //ofLogVerbose(__func__) << "EndOfFrameCounter: " << EndOfFrameCounter;
-    
-    //int result =  frameCounter - frameOffset;
-    //return result;
-    int result = renderComponent.getCurrentFrame();
-    ofLogVerbose(__func__) << result;
-
-	return result;
-}
-void VideoDecoderTextured::resetFrameCounter()
-{
-	//frameOffset = renderComponent.getCurrentFrame();
-    EndOfFrameCounter = 0;
-	renderComponent.resetFrameCounter();
-}
 
 bool VideoDecoderTextured::open(StreamInfo streamInfo_, OMXClock* omxClock_, ofxOMXPlayerSettings& settings_, EGLImageKHR eglImage)
 {

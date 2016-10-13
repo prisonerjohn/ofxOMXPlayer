@@ -29,10 +29,8 @@ static void add_timespecs(struct timespec& time, long millisecs)
 Component::Component()
 {
     doFreeHandle = true;
-	frameCounter = 0;
     emptyBufferCounter = 0;
     fillBufferCounter = 0;
-	frameOffset = 0;
 	inputPort  = 0;
 	outputPort = 0;
 	handle      = NULL;
@@ -140,24 +138,6 @@ Component::~Component()
 
 }
 
-
-int Component::getCurrentFrame()
-{
-	return frameCounter;
-	
-	//return frameCounter-frameOffset;
-}
-
-void Component::resetFrameCounter()
-{
-	frameOffset = frameCounter;
-	frameCounter = 0;
-}
-
-void Component::incrementFrameCounter()
-{
-	frameCounter++;
-}
 
 void Component::resetEOS()
 {

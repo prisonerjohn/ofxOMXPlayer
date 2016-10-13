@@ -380,7 +380,7 @@ string ofxOMXPlayer::getInfo()
 {
     stringstream info;
     info <<"\n" <<  "APP FPS: "+ ofToString(ofGetFrameRate());
-    info <<"\n" <<  "MEDIA TIME: "          << getMediaTime();
+    //info <<"\n" <<  "MEDIA TIME: "          << getMediaTime();
     info <<"\n" <<  "DIMENSIONS: "          << getWidth()<<"x"<<getHeight();
     info <<"\n" <<  "FPS: "                 << getFPS();
     info <<"\n" <<  "DURATION IN SECS: "    << getDurationInSeconds();
@@ -790,6 +790,10 @@ void ofxOMXPlayer::updateCurrentFrame()
 
 void ofxOMXPlayer::onUpdate(ofEventArgs& args)
 {
+    if(engine)
+    {
+        engine->updateCurrentFrame();
+    }
     if(engine && engine->doRestart)
     {
         doRestart = true;

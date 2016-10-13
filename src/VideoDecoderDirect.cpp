@@ -6,8 +6,6 @@ VideoDecoderDirect::VideoDecoderDirect()
 {
 
 	doHDMISync   = false;
-	frameCounter = 0;
-	frameOffset = 0;
 }
 
 
@@ -278,24 +276,6 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
 	// start from assuming all recent frames had valid pts
 	validHistoryPTS = ~0;
 	return true;
-}
-
-
-
-int VideoDecoderDirect::getCurrentFrame()
-{
-    //ofLogVerbose(__func__) << "frameCounter: " << frameCounter << " frameOffset: " << frameOffset;
-    uint64_t currentTime = omxClock->getMediaTime();
-    int result = (currentTime*streamInfo.fpsrate)/AV_TIME_BASE;
-    ofLogVerbose(__func__) << "currentTime: " << currentTime << " result: " << result;
-    return result;
-}
-
-void VideoDecoderDirect::resetFrameCounter()
-{
-	frameOffset = frameCounter;
-    EndOfFrameCounter = 0;
-
 }
 
 

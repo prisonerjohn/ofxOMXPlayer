@@ -207,7 +207,7 @@ int64_t OMXClock::getMediaTime()
         return 0;
     }
     int64_t pts = 0;
-    lock();
+    //lock();
 
     OMX_ERRORTYPE error = OMX_ErrorNone;
     
@@ -219,14 +219,14 @@ int64_t OMXClock::getMediaTime()
     error = clockComponent.getConfig(OMX_IndexConfigTimeCurrentMediaTime, &timeStamp);
     OMX_TRACE(error);
 
-    if(error != OMX_ErrorNone)
+    if(error == OMX_ErrorNone)
     {
-        unlock();
-        return 0;
+        //unlock();
+        pts = FromOMXTime(timeStamp.nTimestamp);
     }
 
-    pts = FromOMXTime(timeStamp.nTimestamp);
-    unlock();
+    
+    //unlock();
 
     return pts;
 }

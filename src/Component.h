@@ -94,9 +94,6 @@ public:
     bool setToStateIdle();
     bool tunnelToNull(int port);
     
-    int getCurrentFrame();
-    void resetFrameCounter();
-    void incrementFrameCounter();
     
     bool doFreeHandle;
     
@@ -141,8 +138,5 @@ private:
     bool            doFlushOutput;
     void            lock();
     void            unlock();
-    
-    int frameCounter;
-    int frameOffset;
     
 };

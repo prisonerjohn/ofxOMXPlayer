@@ -11,12 +11,7 @@ public:
     ~VideoDecoderTextured(){};
     
     bool open(StreamInfo, OMXClock* omxClock_, ofxOMXPlayerSettings&, EGLImageKHR);
-        
-    int getCurrentFrame();
-    void resetFrameCounter();
+
     OMX_ERRORTYPE onFillBuffer(Component*, OMX_BUFFERHEADERTYPE*);
 
-private:
-    int frameCounter;
-    int frameOffset;
 };

@@ -52,6 +52,7 @@ ofxOMXPlayerEngine::ofxOMXPlayerEngine()
     eglImage = NULL;
     doRestart = false;
     doOnLoop = false;
+    frameCounter = 0;
     
 }
 
@@ -284,7 +285,7 @@ void ofxOMXPlayerEngine::process()
     {
         //ofLogVerbose(__func__) << OMXReader::packetsAllocated << " packetsFreed: " << OMXReader::packetsFreed << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed);
         //ofLogVerbose(__func__) << " remaining packets: " << remainingPackets;
-        ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
+        //ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
         if(getCurrentFrame() && getCurrentFrame()>=getTotalNumFrames())
         {
             if(doLooping)
@@ -356,7 +357,7 @@ void ofxOMXPlayerEngine::process()
                         ENGINE_LOG("SEEKED");
                         if(getCurrentFrame()>=getTotalNumFrames())
                         {
-                            ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
+                            //ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
                             if(!doOnLoop)
                             {
                                 doOnLoop=true;
@@ -381,7 +382,7 @@ void ofxOMXPlayerEngine::process()
                 }
                 else
                 {
-                    omxClock->sleep(10);
+                    //omxClock->sleep(10);
                     LOOP_LOG(" continue");
                     continue;
                 }
@@ -427,7 +428,7 @@ void ofxOMXPlayerEngine::process()
                 }
                 else
                 {
-                    omxClock->sleep(10);
+                    //omxClock->sleep(10);
                 }
                 
             }
@@ -439,7 +440,7 @@ void ofxOMXPlayerEngine::process()
                 }
                 else
                 {
-                    omxClock->sleep(10);
+                    //omxClock->sleep(10);
                 }
             }
             else
@@ -451,7 +452,7 @@ void ofxOMXPlayerEngine::process()
         }else
         {
             LOOP_LOG("no packet, sleeping");
-            omxClock->sleep(10);
+            //omxClock->sleep(10);
         }
       
     }
@@ -609,16 +610,15 @@ float ofxOMXPlayerEngine::getDurationInSeconds()
 {
     return duration;
 }
-
+void ofxOMXPlayerEngine::updateCurrentFrame()
+{
+    double currentTime = omxClock->getMediaTime();
+    frameCounter = (currentTime*videoStreamInfo.fpsrate)/AV_TIME_BASE;
+    ofLogVerbose(__func__) << " frameCounter: " << frameCounter;  
+}
 int ofxOMXPlayerEngine::getCurrentFrame()
 {
-    if (videoPlayer) 
-    {
-        
-        return videoPlayer->getCurrentFrame()+startFrame;
-    }
-    
-    return 0;
+    return frameCounter;
 }
 
 int ofxOMXPlayerEngine::getTotalNumFrames()
@@ -723,7 +723,8 @@ void ofxOMXPlayerEngine::onVideoLoop()
 {
     ofLogVerbose(__func__) << endl << endl << endl << endl << endl << endl << endl << endl << endl << endl ;
     doOnLoop = false;
-    videoPlayer->resetFrameCounter();
+    updateCurrentFrame();
+    //videoPlayer->resetFrameCounter();
     startFrame = 0;
     
     if (listener != NULL)

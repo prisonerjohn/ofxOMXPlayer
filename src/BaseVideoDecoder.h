@@ -83,11 +83,6 @@ public:
         return bits;
     }
     
-    
-    virtual int getCurrentFrame() = 0;
-    virtual void resetFrameCounter() = 0;
-    
-    
     ofxOMXPlayerSettings settings;
 
     StreamInfo streamInfo;

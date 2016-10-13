@@ -27,6 +27,7 @@ public:
     bool increaseTestComplete;
     bool decreaseTestComplete;
     
+    bool printPostScrubTime;
     PlaybackTestRunner()
     {
         stopAll();
@@ -46,6 +47,7 @@ public:
         doVolumeTest = false;
         increaseTestComplete = false;
         decreaseTestComplete = false;
+        printPostScrubTime = false;
         
     }
     
@@ -159,12 +161,18 @@ public:
                         doScrubTest = false;
                         scrubCounter = 0;
                         ofLogVerbose(__func__) << test->name << " SCRUB TEST COMPLETE";
-                        
+                        printPostScrubTime = true;
+                             
                     }
                 }
                 
             }
-            
+            if(printPostScrubTime)
+            {
+                uint64_t currentTime = test->omxPlayer->engine->omxClock->getMediaTime();
+                int result = (currentTime*test->omxPlayer->getVideoStreamInfo().fpsrate)/AV_TIME_BASE;
+                ofLogVerbose(__func__) << test->omxPlayer->getCurrentFrame() << " printPostScrubTime: " << currentTime << " result: " << result;  
+            }
             if(doVolumeTest)
             {
                 float currentVolume = test->omxPlayer->getVolume();

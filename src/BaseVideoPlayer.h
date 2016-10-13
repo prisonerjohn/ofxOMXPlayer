@@ -65,10 +65,6 @@ public:
     
     
     uint32_t validHistoryPTS;
-        
-    int getCurrentFrame();
-    void resetFrameCounter();
-    
     
     virtual bool openDecoder() =0;
     virtual void close() = 0;

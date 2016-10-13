@@ -17,9 +17,6 @@ public:
     void updateFrameCount();
     void onUpdate(ofEventArgs& args);
     
-    int getCurrentFrame();
-    void resetFrameCounter();
-    
     bool doDeinterlace;
     bool doHDMISync;    
     OMXDisplay display;
@@ -27,11 +24,5 @@ public:
     {
         return &display;
     }
-    
-
-private:
-    int frameCounter;
-    int frameOffset;
-    
     
 };
