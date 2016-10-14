@@ -626,18 +626,21 @@ void ofxOMXPlayerEngine::resetFrameCounter()
 }
 void ofxOMXPlayerEngine::updateFromMediaClock()
 {
-    int64_t currentTime = omxClock->getMediaTime();
-    frameCounter = (currentTime*videoStreamInfo.fpsrate)/AV_TIME_BASE;
+    frameCounter = (omxClock->getMediaTime()*videoStreamInfo.fpsrate)/AV_TIME_BASE;
     if(texturedPlayer)
     {
         texturedPlayer->textureDecoder->frameCounter = frameCounter;
     }
-    ofLogVerbose(__func__) << " frameCounter: " << frameCounter;
+    //ofLogVerbose(__func__) << " frameCounter: " << frameCounter;
 
 }   
 void ofxOMXPlayerEngine::updateCurrentFrame()
 {
-    //ofLogVerbose(__func__) << " frameCounter: " << frameCounter;
+    /*
+     
+     updateFromMediaClock is an easier way but very slow in textured mode
+     TODO: why?
+     */
     if(directPlayer)
     {
         updateFromMediaClock();
@@ -773,7 +776,6 @@ void ofxOMXPlayerEngine::onVideoLoop()
     
     if (listener != NULL)
     {
-        
         ofxOMXPlayerListenerEventData eventData((void *)this);
         listener->onVideoLoop(eventData);
     }

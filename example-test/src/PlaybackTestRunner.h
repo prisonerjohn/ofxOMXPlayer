@@ -27,6 +27,8 @@ public:
     bool increaseTestComplete;
     bool decreaseTestComplete;
     
+    bool doSeekTest;
+    
     PlaybackTestRunner()
     {
         stopAll();
@@ -46,6 +48,8 @@ public:
         doVolumeTest = false;
         increaseTestComplete = false;
         decreaseTestComplete = false;
+        
+        doSeekTest = false;
         
     }
     
@@ -81,6 +85,16 @@ public:
         doScrubTest = true;
         ofLog() << "STARTING SCRUB TEST";
     }
+    
+    void startSeekTest(BaseTest* test_)
+    {
+        stopAll();
+        test = test_;
+        doSeekTest = true;
+        ofLog() << "STARTING SEEK TEST";
+    }
+    
+    
     void startVolumeTest(BaseTest* test_)
     {
         stopAll();
@@ -166,7 +180,30 @@ public:
                 }
                 
             }
-            
+            if(doSeekTest)
+            {
+                float totalSeconds = test->omxPlayer->getDurationInSeconds();
+                if(totalSeconds)
+                {
+                    float middle = totalSeconds*0.5;
+                    int frameTarget = middle*test->omxPlayer->getFPS();
+                    stringstream info;
+                    info << "totalSeconds: " << totalSeconds << endl;
+                    info << "middle: " << middle << endl;
+                    info << "frameTarget: " << frameTarget << endl;
+
+                    ofLogVerbose(__func__) << info.str();
+
+                    test->omxPlayer->seekToTimeInSeconds(middle);
+                    //doPause = true;
+                }else
+                {
+                    ofLogError(__func__) << "TOTAL SECONDS IS ZERO";
+                }
+                
+                doSeekTest = false;
+                
+            }
    
             if(doVolumeTest)
             {

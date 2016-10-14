@@ -149,6 +149,12 @@ public:
             }
             case '5':
             {
+                playbackTestRunner.startSeekTest(currentTest);
+                break;
+            }    
+                
+            case '6':
+            {
                 playbackTestRunner.startVolumeTest(currentTest);
                 break;
             }
