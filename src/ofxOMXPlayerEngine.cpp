@@ -53,6 +53,7 @@ ofxOMXPlayerEngine::ofxOMXPlayerEngine()
     doRestart = false;
     doOnLoop = false;
     frameCounter = 0;
+    didSeek = false;
     
 }
 
@@ -248,14 +249,15 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
             
             //file is weird (like test.h264) and has no reported frames
         }
-        if (startTimeInSeconds !=0 && omxReader.canSeek())
+        if (startTimeInSeconds>0 && omxReader.canSeek())
         {
             
-            bool didSeek = omxReader.SeekTime(startTimeInSeconds * 1000.0f, 0, &startpts);
-            if(didSeek)
+            bool doSeek = omxReader.SeekTime(startTimeInSeconds * 1000.0f, 0, &startpts);
+            if(doSeek)
             {
                 startFrame = (int)videoPlayer->getFPS()*(int)startTimeInSeconds;
-                ofLogNotice(__func__) << "Seeking start of video to " << startTimeInSeconds << " seconds, frame: " << startFrame;
+                ofLogVerbose(__func__) << "Seeking start of video to " << startTimeInSeconds << " seconds, frame: " << startFrame;
+                didSeek = true;
             }else
             {
                 ofLogError(__func__) << "COULD NOT SEEK TO " << startTimeInSeconds;
@@ -283,6 +285,7 @@ void ofxOMXPlayerEngine::process()
 {
     while (!doStop)
     {
+        updateCurrentFrame();
         //ofLogVerbose(__func__) << OMXReader::packetsAllocated << " packetsFreed: " << OMXReader::packetsFreed << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed);
         //ofLogVerbose(__func__) << " remaining packets: " << remainingPackets;
         //ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
@@ -531,7 +534,8 @@ void ofxOMXPlayerEngine::scrubForward(int step)
         omxClock->step(1);
         setPaused(false);
     }
-    
+    didSeek = true;
+    updateCurrentFrame();
 }
 
 void ofxOMXPlayerEngine::stepFrameForward()
@@ -610,11 +614,40 @@ float ofxOMXPlayerEngine::getDurationInSeconds()
 {
     return duration;
 }
-void ofxOMXPlayerEngine::updateCurrentFrame()
+
+
+void ofxOMXPlayerEngine::resetFrameCounter()
+{
+    frameCounter = 0;
+    if(texturedPlayer)
+    {
+        texturedPlayer->textureDecoder->frameCounter = frameCounter;
+    }
+}
+void ofxOMXPlayerEngine::updateFromMediaClock()
 {
     double currentTime = omxClock->getMediaTime();
     frameCounter = (currentTime*videoStreamInfo.fpsrate)/AV_TIME_BASE;
-    ofLogVerbose(__func__) << " frameCounter: " << frameCounter;  
+    if(texturedPlayer)
+    {
+        texturedPlayer->textureDecoder->frameCounter = frameCounter;
+    }
+    ofLogVerbose(__func__) << " frameCounter: " << frameCounter;
+
+}   
+void ofxOMXPlayerEngine::updateCurrentFrame()
+{
+    //ofLogVerbose(__func__) << " frameCounter: " << frameCounter;
+    if(didSeek)
+    {
+        updateFromMediaClock();
+        didSeek =false;
+    }
+    if(texturedPlayer)
+    {
+        frameCounter = texturedPlayer->textureDecoder->frameCounter;
+    }
+      
 }
 int ofxOMXPlayerEngine::getCurrentFrame()
 {
@@ -724,7 +757,7 @@ void ofxOMXPlayerEngine::onVideoLoop()
     ofLogVerbose(__func__) << endl << endl << endl << endl << endl << endl << endl << endl << endl << endl ;
     doOnLoop = false;
     updateCurrentFrame();
-    //videoPlayer->resetFrameCounter();
+    resetFrameCounter();
     startFrame = 0;
     
     if (listener != NULL)

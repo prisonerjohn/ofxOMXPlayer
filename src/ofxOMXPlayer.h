@@ -124,7 +124,6 @@ private:
     bool            textureEnabled;
     
     bool            didSeek;
-    bool            didWarnAboutInaccurateCurrentFrame;
     bool            isOpen;
     int             speedMultiplier;
     

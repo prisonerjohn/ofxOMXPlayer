@@ -3,7 +3,7 @@
 
 VideoDecoderTextured::VideoDecoderTextured()
 {
-
+    frameCounter = 0;
 }
 
 
@@ -13,12 +13,16 @@ VideoDecoderTextured::VideoDecoderTextured()
 OMX_ERRORTYPE VideoDecoderTextured::onFillBuffer(Component* component, OMX_BUFFERHEADERTYPE* pBuffer)
 {	
 	OMX_ERRORTYPE error = OMX_FillThisBuffer(component->handle, pBuffer);
+    frameCounter++;
     OMX_TRACE(error);
 	return error;
 }
 
 
-bool VideoDecoderTextured::open(StreamInfo streamInfo_, OMXClock* omxClock_, ofxOMXPlayerSettings& settings_, EGLImageKHR eglImage)
+bool VideoDecoderTextured::open(StreamInfo streamInfo_,
+                                OMXClock* omxClock_,
+                                ofxOMXPlayerSettings& settings_,
+                                EGLImageKHR eglImage)
 {
 	OMX_ERRORTYPE error   = OMX_ErrorNone;
 

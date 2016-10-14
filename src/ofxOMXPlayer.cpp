@@ -32,9 +32,7 @@ ofxOMXPlayer::ofxOMXPlayer()
     prevFrame = 0;
     doRestart = false;
     doToggle = false;
-    didSeek = false;
     speedMultiplier = 1;
-    didWarnAboutInaccurateCurrentFrame =false;
     decoderHandle = NULL;
     ofAddListener(ofEvents().update, this, &ofxOMXPlayer::onUpdate);
     
@@ -326,12 +324,6 @@ int ofxOMXPlayer::getCurrentFrame()
 {
     if (engine)
     {
-        if(didSeek && !didWarnAboutInaccurateCurrentFrame)
-        {
-            ofLogWarning(__func__) << "UNLESS YOU HAVE A 1:1 KEYFRAME:FRAME RATIO CURRENT FRAME NUMBER WILL LIKELY BE INACCURATE AFTER SEEKING";
-            
-            didWarnAboutInaccurateCurrentFrame = true;
-        }
         return engine->getCurrentFrame();
     }
     return 0;
@@ -380,7 +372,7 @@ string ofxOMXPlayer::getInfo()
 {
     stringstream info;
     info <<"\n" <<  "APP FPS: "+ ofToString(ofGetFrameRate());
-    //info <<"\n" <<  "MEDIA TIME: "          << getMediaTime();
+    info <<"\n" <<  "MEDIA TIME: "          << getMediaTime();
     info <<"\n" <<  "DIMENSIONS: "          << getWidth()<<"x"<<getHeight();
     info <<"\n" <<  "FPS: "                 << getFPS();
     info <<"\n" <<  "DURATION IN SECS: "    << getDurationInSeconds();
@@ -513,7 +505,6 @@ void ofxOMXPlayer::restartMovie()
 
 void ofxOMXPlayer::seekToTimeInSeconds(int timeInSeconds)
 {
-    didSeek = true;
     openEngine(timeInSeconds);
 }
 
@@ -790,10 +781,6 @@ void ofxOMXPlayer::updateCurrentFrame()
 
 void ofxOMXPlayer::onUpdate(ofEventArgs& args)
 {
-    if(engine)
-    {
-        engine->updateCurrentFrame();
-    }
     if(engine && engine->doRestart)
     {
         doRestart = true;

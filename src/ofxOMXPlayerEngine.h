@@ -107,7 +107,10 @@ public:
     OMXClock* omxClock;
     
     void updateCurrentFrame();
+    void updateFromMediaClock();
+    void resetFrameCounter();
     int frameCounter;
+    bool didSeek;
 private:
     
     
