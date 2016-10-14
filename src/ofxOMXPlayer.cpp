@@ -292,7 +292,7 @@ int ofxOMXPlayer::getWidth()
     return videoWidth;
 }
 
-double ofxOMXPlayer::getMediaTime()
+int64_t ofxOMXPlayer::getMediaTime()
 {
     if (engine)
     {

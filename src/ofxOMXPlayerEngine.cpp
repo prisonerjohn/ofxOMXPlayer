@@ -626,7 +626,7 @@ void ofxOMXPlayerEngine::resetFrameCounter()
 }
 void ofxOMXPlayerEngine::updateFromMediaClock()
 {
-    double currentTime = omxClock->getMediaTime();
+    int64_t currentTime = omxClock->getMediaTime();
     frameCounter = (currentTime*videoStreamInfo.fpsrate)/AV_TIME_BASE;
     if(texturedPlayer)
     {
@@ -638,15 +638,27 @@ void ofxOMXPlayerEngine::updateFromMediaClock()
 void ofxOMXPlayerEngine::updateCurrentFrame()
 {
     //ofLogVerbose(__func__) << " frameCounter: " << frameCounter;
-    if(didSeek)
+    if(directPlayer)
     {
         updateFromMediaClock();
+        
+    }else
+    {
+        if(didSeek)
+        {
+            updateFromMediaClock();
+        }
+        
+        if(texturedPlayer)
+        {
+            frameCounter = texturedPlayer->textureDecoder->frameCounter;
+        }
+    }
+    if(didSeek)
+    {
         didSeek =false;
     }
-    if(texturedPlayer)
-    {
-        frameCounter = texturedPlayer->textureDecoder->frameCounter;
-    }
+    
       
 }
 int ofxOMXPlayerEngine::getCurrentFrame()
@@ -669,15 +681,14 @@ int ofxOMXPlayerEngine::getHeight()
     return videoHeight;
 }
 
-double ofxOMXPlayerEngine::getMediaTime()
+int64_t ofxOMXPlayerEngine::getMediaTime()
 {
-    double mediaTime = 0.0;
     if(isPlaying())
     {
-        mediaTime = omxClock->getMediaTime();
+        return omxClock->getMediaTime();
     }
     
-    return mediaTime;
+    return 0;
 }
 
 bool ofxOMXPlayerEngine::isPaused()

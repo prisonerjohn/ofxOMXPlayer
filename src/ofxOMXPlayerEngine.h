@@ -50,7 +50,7 @@ public:
     bool isPaused();
     bool isPlaying();
     
-    double getMediaTime();
+    int64_t getMediaTime();
     bool useHDMIForAudio;
     
     bool isTextureEnabled;
