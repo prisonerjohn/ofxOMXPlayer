@@ -502,7 +502,29 @@ void ofxOMXPlayer::restartMovie()
     doRestart = true;
 }
 
-
+void ofxOMXPlayer::seekToFrame(int target)
+{
+    float fps = getFPS();
+    int numFrames = getTotalNumFrames();
+    if(!numFrames)
+    {
+        ofLogError(__func__) << "NO FRAMES";
+        return;
+    }
+    if(!fps)
+    {
+        ofLogError(__func__) << "NO FPS";
+        return;
+    }
+    if(target<numFrames)
+    {
+        float targetInSeconds = target/fps;
+        seekToTimeInSeconds(targetInSeconds);
+    }else
+    {
+        ofLogError(__func__) << "CANNOT SEEK TO FRAME " << target << " of total frames: " << numFrames;
+    }
+}
 void ofxOMXPlayer::seekToTimeInSeconds(int timeInSeconds)
 {
     openEngine(timeInSeconds);

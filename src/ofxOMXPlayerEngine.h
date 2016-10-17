@@ -111,6 +111,7 @@ public:
     void resetFrameCounter();
     int frameCounter;
     bool didSeek;
+    int startFrame;
 private:
     
     
@@ -154,7 +155,6 @@ private:
     
     void setDisplayRect(ofRectangle& rectangle);
     bool didReadFile(bool doSkipAvProbe);
-    int startFrame;
     bool doOnLoop;
 };
 

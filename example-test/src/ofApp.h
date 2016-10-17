@@ -152,8 +152,14 @@ public:
                 playbackTestRunner.startSeekTest(currentTest);
                 break;
             }    
+              
                 
             case '6':
+            {
+                playbackTestRunner.startSeekToFrameTest(currentTest);
+                break;
+            }
+            case '7':
             {
                 playbackTestRunner.startVolumeTest(currentTest);
                 break;

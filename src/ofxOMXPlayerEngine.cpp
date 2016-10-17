@@ -42,9 +42,7 @@ ofxOMXPlayerEngine::ofxOMXPlayerEngine()
     
     loopCounter = 0;
     previousLoopOffset = 0;
-    
-    startFrame = 0;
-    
+        
     normalPlaySpeed = 1000;
     speedMultiplier = 1;
     doSeek = false;
@@ -54,7 +52,7 @@ ofxOMXPlayerEngine::ofxOMXPlayerEngine()
     doOnLoop = false;
     frameCounter = 0;
     didSeek = false;
-    
+    startFrame = 0;
 }
 
 #pragma mark startup/setup
@@ -258,6 +256,7 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
                 startFrame = (int)videoPlayer->getFPS()*(int)startTimeInSeconds;
                 ofLogVerbose(__func__) << "Seeking start of video to " << startTimeInSeconds << " seconds, frame: " << startFrame;
                 didSeek = true;
+
             }else
             {
                 ofLogError(__func__) << "COULD NOT SEEK TO " << startTimeInSeconds;
@@ -268,6 +267,15 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
         
         ENGINE_LOG("Opened video PASS");
         Create();
+        
+        if(didSeek)
+        {
+            setPaused(true);
+            updateCurrentFrame();
+            setPaused(false);
+        }
+        
+        
         return true;
     }
     else
@@ -279,12 +287,13 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
 
 
 
-
+#define SLEEP_TIME 10
 #pragma mark threading
 void ofxOMXPlayerEngine::process()
 {
     while (!doStop)
     {
+ 
         updateCurrentFrame();
         //ofLogVerbose(__func__) << OMXReader::packetsAllocated << " packetsFreed: " << OMXReader::packetsFreed << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed);
         //ofLogVerbose(__func__) << " remaining packets: " << remainingPackets;
@@ -385,7 +394,7 @@ void ofxOMXPlayerEngine::process()
                 }
                 else
                 {
-                    //omxClock->sleep(10);
+                    omxClock->sleep(SLEEP_TIME);
                     LOOP_LOG(" continue");
                     continue;
                 }
@@ -419,7 +428,7 @@ void ofxOMXPlayerEngine::process()
                 hasAudio = false;
             }
         }
-        
+
         if(packet)
         {
             LOOP_LOG("has packet");
@@ -431,7 +440,7 @@ void ofxOMXPlayerEngine::process()
                 }
                 else
                 {
-                    //omxClock->sleep(10);
+                    omxClock->sleep(SLEEP_TIME);
                 }
                 
             }
@@ -443,7 +452,7 @@ void ofxOMXPlayerEngine::process()
                 }
                 else
                 {
-                    //omxClock->sleep(10);
+                    omxClock->sleep(SLEEP_TIME);
                 }
             }
             else
@@ -455,7 +464,7 @@ void ofxOMXPlayerEngine::process()
         }else
         {
             LOOP_LOG("no packet, sleeping");
-            //omxClock->sleep(10);
+            omxClock->sleep(SLEEP_TIME);
         }
       
     }
@@ -626,12 +635,13 @@ void ofxOMXPlayerEngine::resetFrameCounter()
 }
 void ofxOMXPlayerEngine::updateFromMediaClock()
 {
-    frameCounter = (omxClock->getMediaTime()*videoStreamInfo.fpsrate)/AV_TIME_BASE;
+    frameCounter = (omxClock->getMediaTime()*getFPS())/AV_TIME_BASE;
     if(texturedPlayer)
     {
         texturedPlayer->textureDecoder->frameCounter = frameCounter;
+        ofLogVerbose(__func__) << " frameCounter: " << frameCounter;
+
     }
-    //ofLogVerbose(__func__) << " frameCounter: " << frameCounter;
 
 }   
 void ofxOMXPlayerEngine::updateCurrentFrame()
@@ -771,9 +781,7 @@ void ofxOMXPlayerEngine::onVideoLoop()
     ofLogVerbose(__func__) << endl << endl << endl << endl << endl << endl << endl << endl << endl << endl ;
     doOnLoop = false;
     updateCurrentFrame();
-    resetFrameCounter();
-    startFrame = 0;
-    
+    resetFrameCounter();    
     if (listener != NULL)
     {
         ofxOMXPlayerListenerEventData eventData((void *)this);

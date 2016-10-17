@@ -23,12 +23,14 @@ OMXClock::~OMXClock()
 
 void OMXClock::lock()
 {
+    return;
     //ofLogVerbose(__func__) << "";
     pthread_mutex_lock(&m_lock);
 }
 
 void OMXClock::unlock()
 {
+    return;
     //ofLogVerbose(__func__) << "";
     pthread_mutex_unlock(&m_lock);
 }

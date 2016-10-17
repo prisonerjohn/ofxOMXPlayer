@@ -52,7 +52,7 @@ public:
     void        rewind();
     void        restartMovie();
     void        seekToTimeInSeconds(int timeInSeconds);
-    
+    void        seekToFrame(int frameNumber);
 
     void        saveImage(string imagePath="");
     void        updatePixels();
@@ -123,7 +123,6 @@ private:
     bool            doToggle;
     bool            textureEnabled;
     
-    bool            didSeek;
     bool            isOpen;
     int             speedMultiplier;
     

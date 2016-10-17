@@ -28,7 +28,7 @@ public:
     bool decreaseTestComplete;
     
     bool doSeekTest;
-    
+    bool doSeekToFrameTest;
     PlaybackTestRunner()
     {
         stopAll();
@@ -50,7 +50,7 @@ public:
         decreaseTestComplete = false;
         
         doSeekTest = false;
-        
+        doSeekToFrameTest = false;
     }
     
     void startPauseTest(BaseTest* test_)
@@ -94,6 +94,13 @@ public:
         ofLog() << "STARTING SEEK TEST";
     }
     
+    void startSeekToFrameTest(BaseTest* test_)
+    {
+        stopAll();
+        test = test_;
+        doSeekToFrameTest = true;
+        ofLog() << "STARTING SEEK TO FRAME TEST";
+    }
     
     void startVolumeTest(BaseTest* test_)
     {
@@ -203,6 +210,12 @@ public:
                 
                 doSeekTest = false;
                 
+            }
+            
+            if(doSeekToFrameTest)
+            {
+                test->omxPlayer->seekToFrame(250);
+                doSeekToFrameTest =false;
             }
    
             if(doVolumeTest)
