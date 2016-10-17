@@ -201,14 +201,14 @@ bool OMXClock::reset()
     return true;
 }
 
-int64_t OMXClock::getMediaTime()
+double OMXClock::getMediaTime()
 {
     if(clockComponent.handle == NULL)
     {
         ofLogError(__func__) << "NO CLOCK YET";
         return 0;
     }
-    int64_t pts = 0;
+    double pts = 0;
     lock();
 
     OMX_ERRORTYPE error = OMX_ErrorNone;
@@ -218,7 +218,12 @@ int64_t OMXClock::getMediaTime()
     OMX_INIT_STRUCTURE(timeStamp);
     timeStamp.nPortIndex = clockComponent.inputPort;
 
-    error = clockComponent.getConfig(OMX_IndexConfigTimeCurrentMediaTime, &timeStamp);
+    //error = clockComponent.getConfig(OMX_IndexConfigTimeCurrentMediaTime, &timeStamp);
+    
+    
+    error = OMX_GetConfig(clockComponent.handle, OMX_IndexConfigTimeCurrentMediaTime, &timeStamp);
+    
+    
     OMX_TRACE(error);
 
     if(error == OMX_ErrorNone)

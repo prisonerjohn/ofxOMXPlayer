@@ -25,7 +25,7 @@ public:
     int         getHeight();
     int         getWidth();
     float       getFPS();
-    int64_t      getMediaTime();
+    double      getMediaTime();
     bool        getIsOpen();
     float       getDurationInSeconds();
     int         getCurrentFrame();
