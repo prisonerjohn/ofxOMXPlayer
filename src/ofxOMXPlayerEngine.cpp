@@ -367,9 +367,11 @@ void ofxOMXPlayerEngine::process()
                             }
                         }
                         ENGINE_LOG("SEEKED");
+                        
+                        ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
+                         /*   
                         if(getCurrentFrame()>=getTotalNumFrames())
                         {
-                            //ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
                             if(!doOnLoop)
                             {
                                 doOnLoop=true;
@@ -389,7 +391,7 @@ void ofxOMXPlayerEngine::process()
                                 }
 
                             }
-                        }
+                        }*/
                     }
                 }
                 else
@@ -412,14 +414,15 @@ void ofxOMXPlayerEngine::process()
                 }
                 
             }
-        }
-        
-        if (doLooping && doOnLoop)
-        {
             
+            
+        }
+        if (doOnLoop)
+        {
             ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
             onVideoLoop();
         }
+        
         if (hasAudio)
         {
             if(audioPlayer->getError())
@@ -740,15 +743,22 @@ void ofxOMXPlayerEngine::removeListener()
 
 void ofxOMXPlayerEngine::onVideoLoop()
 {
+    lock();
     ofLogVerbose(__func__) << endl << endl << endl << endl << endl << endl << endl << endl << endl << endl ;
     doOnLoop = false;
     updateCurrentFrame();
     resetFrameCounter();    
+    if (omxReader.wasFileRewound)
+    {
+        omxReader.wasFileRewound = false;
+    }
+    
     if (listener != NULL)
     {
         ofxOMXPlayerListenerEventData eventData((void *)this);
         listener->onVideoLoop(eventData);
     }
+    unlock();
 }
 void ofxOMXPlayerEngine::onVideoEnd()
 {
