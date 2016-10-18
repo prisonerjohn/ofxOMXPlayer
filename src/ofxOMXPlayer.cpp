@@ -34,6 +34,7 @@ ofxOMXPlayer::ofxOMXPlayer()
     doToggle = false;
     speedMultiplier = 1;
     decoderHandle = NULL;
+    frameCounter = 0;
     ofAddListener(ofEvents().update, this, &ofxOMXPlayer::onUpdate);
     
 }
@@ -322,11 +323,7 @@ float ofxOMXPlayer::getDurationInSeconds()
 
 int ofxOMXPlayer::getCurrentFrame()
 {
-    if (engine)
-    {
-        return engine->getCurrentFrame();
-    }
-    return 0;
+    return frameCounter;
 }
 
 int ofxOMXPlayer::getTotalNumFrames()
@@ -781,11 +778,11 @@ void ofxOMXPlayer::updateCurrentFrame()
     if (engine)
     {
         
-        int currentFrame = engine->getCurrentFrame();
-        if (prevFrame != currentFrame) 
+        frameCounter = engine->getCurrentFrame();
+        if (prevFrame != frameCounter) 
         {
             hasNewFrame = true;
-            prevFrame = currentFrame;
+            prevFrame = frameCounter;
             
         }else 
         {

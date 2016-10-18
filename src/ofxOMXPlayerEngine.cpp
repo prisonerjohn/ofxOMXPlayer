@@ -331,6 +331,12 @@ void ofxOMXPlayerEngine::process()
                 {
                     omxReader.wasFileRewound = false;
                 }
+                if (listener != NULL)
+                {
+                    
+                    ofxOMXPlayerListenerEventData eventData((void *)this);
+                    listener->onVideoLoop(eventData);
+                }
             }
         }
         if(!packet)

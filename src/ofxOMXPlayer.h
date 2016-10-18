@@ -138,5 +138,6 @@ private:
     
     OMX_HANDLETYPE decoderHandle;
     ofxOMXPlayerSettings    settings;
+    int frameCounter;
 };
 
