@@ -41,7 +41,7 @@ ofxOMXPlayerEngine::ofxOMXPlayerEngine()
     listener = NULL;
     
     loopCounter = 0;
-    previousLoopOffset = 0;
+    previousLoopOffset = -1;
         
     normalPlaySpeed = 1000;
     speedMultiplier = 1;
@@ -53,6 +53,7 @@ ofxOMXPlayerEngine::ofxOMXPlayerEngine()
     frameCounter = 0;
     didSeek = false;
     startFrame = 0;
+    loopFrame = 0;
 }
 
 #pragma mark startup/setup
@@ -268,13 +269,6 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
         ENGINE_LOG("Opened video PASS");
         Create();
         
-        if(didSeek)
-        {
-            setPaused(true);
-            updateCurrentFrame();
-            setPaused(false);
-        }
-        
         
         return true;
     }
@@ -285,8 +279,32 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
     }
 }
 
+void ofxOMXPlayerEngine::enableDoLoop()
+{
+    lock();
+    doOnLoop = true;
+    unlock();
+}
+void ofxOMXPlayerEngine::disableDoLoop()
+{
+    lock();
+    doOnLoop = false;
+    unlock();
+}
+bool ofxOMXPlayerEngine::getDoLoop()
+{
+    bool result = false;
+    lock();
+    result = doOnLoop;
+    unlock();
+    return result;
+}
 
 
+bool AreSame(double a, double b)
+{
+    return fabs(a - b) < DBL_EPSILON;
+}
 #define SLEEP_TIME 10
 #pragma mark threading
 void ofxOMXPlayerEngine::process()
@@ -298,12 +316,21 @@ void ofxOMXPlayerEngine::process()
         //ofLogVerbose(__func__) << OMXReader::packetsAllocated << " packetsFreed: " << OMXReader::packetsFreed << " leaked: " << (OMXReader::packetsAllocated-OMXReader::packetsFreed);
         //ofLogVerbose(__func__) << " remaining packets: " << remainingPackets;
         //ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
-        if(getCurrentFrame() && getCurrentFrame()>=getTotalNumFrames())
+        int currentFrame = getCurrentFrame();
+        if(currentFrame && currentFrame>=getTotalNumFrames())
         {
             if(doLooping)
             {
                 ENGINE_LOG("WE SHOULD LOOP");
-                doOnLoop = true;
+                ofLogVerbose(__func__) << __LINE__ << " " << currentFrame << " of " << getTotalNumFrames();
+
+                loopFrame = (int)((loop_offset*getFPS())/AV_TIME_BASE);
+                loopCounter++;
+                resetFrameCounter();    
+                if (omxReader.wasFileRewound)
+                {
+                    omxReader.wasFileRewound = false;
+                }
             }
         }
         if(!packet)
@@ -417,11 +444,7 @@ void ofxOMXPlayerEngine::process()
             
             
         }
-        if (doOnLoop)
-        {
-            ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
-            onVideoLoop();
-        }
+        
         
         if (hasAudio)
         {
@@ -630,18 +653,25 @@ float ofxOMXPlayerEngine::getDurationInSeconds()
 
 void ofxOMXPlayerEngine::resetFrameCounter()
 {
+    lock();
     frameCounter = 0;
+    unlock();
 }
 
 
 void ofxOMXPlayerEngine::updateCurrentFrame()
 {
-    frameCounter = (omxClock->getMediaTime()*getFPS())/AV_TIME_BASE;
-      
+    lock();
+    frameCounter = ((omxClock->getMediaTime()*getFPS())/AV_TIME_BASE);
+    unlock();  
 }
 int ofxOMXPlayerEngine::getCurrentFrame()
 {
-    return frameCounter;
+    int result = 0;
+    lock();
+    result = frameCounter-loopFrame;
+    unlock();
+    return result;
 }
 
 int ofxOMXPlayerEngine::getTotalNumFrames()
@@ -741,25 +771,6 @@ void ofxOMXPlayerEngine::removeListener()
 
 
 
-void ofxOMXPlayerEngine::onVideoLoop()
-{
-    lock();
-    ofLogVerbose(__func__) << endl << endl << endl << endl << endl << endl << endl << endl << endl << endl ;
-    doOnLoop = false;
-    updateCurrentFrame();
-    resetFrameCounter();    
-    if (omxReader.wasFileRewound)
-    {
-        omxReader.wasFileRewound = false;
-    }
-    
-    if (listener != NULL)
-    {
-        ofxOMXPlayerListenerEventData eventData((void *)this);
-        listener->onVideoLoop(eventData);
-    }
-    unlock();
-}
 void ofxOMXPlayerEngine::onVideoEnd()
 {
     if (listener != NULL)

@@ -114,8 +114,9 @@ public:
     int startFrame;
 private:
     
-    
-    
+    void enableDoLoop();
+    void disableDoLoop();
+    bool getDoLoop();
     
     OMXPacket* packet;
     
@@ -144,7 +145,7 @@ private:
     double loop_offset;
     double startpts;
     int loopCounter;
-    
+    int loopFrame;
     float duration;
     
     void onVideoEnd();

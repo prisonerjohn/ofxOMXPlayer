@@ -780,6 +780,7 @@ void ofxOMXPlayer::updateCurrentFrame()
 {
     if (engine)
     {
+        
         int currentFrame = engine->getCurrentFrame();
         if (prevFrame != currentFrame) 
         {
