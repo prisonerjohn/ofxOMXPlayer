@@ -1,5 +1,11 @@
 #include "OMXClock.h"
 
+
+#define START(x) unsigned long long startTime = ofGetElapsedTimeMillis();
+#define END(x) unsigned long long endTime = ofGetElapsedTimeMillis();
+#define P(x) int ms = endTime-startTime; if((ms)>x) {ofLogNotice(__func__) << "TOOK " << endTime-startTime <<  " MS";}
+
+
 OMXClock::OMXClock()
 {
 
@@ -161,7 +167,7 @@ bool OMXClock::step(int steps)
         return false;
     }
 
-    //lock();
+    lock();
 
     OMX_ERRORTYPE error = OMX_ErrorNone;
     OMX_PARAM_U32TYPE param;
@@ -178,7 +184,7 @@ bool OMXClock::step(int steps)
         return false;
     }
 
-    //unlock();
+    unlock();
 
     return true;
 }
@@ -210,7 +216,7 @@ double OMXClock::getMediaTime()
     }
     double pts = 0;
     lock();
-
+    START();
     OMX_ERRORTYPE error = OMX_ErrorNone;
     
 
@@ -231,9 +237,10 @@ double OMXClock::getMediaTime()
         unlock();
         pts = FromOMXTime(timeStamp.nTimestamp);
     }
-
+    END();
+    P(2);
     
-    //unlock();
+    unlock();
 
     return pts;
 }
@@ -340,7 +347,7 @@ bool OMXClock::setSpeed(int speed, bool doResume /* = false */)
         return false;
     }
 
-    //lock();
+    lock();
 
     OMX_ERRORTYPE error = OMX_ErrorNone;
     OMX_TIME_CONFIG_SCALETYPE scaleType;
@@ -375,13 +382,13 @@ bool OMXClock::setSpeed(int speed, bool doResume /* = false */)
 
     if(error != OMX_ErrorNone)
     {
-        //unlock();
+        unlock();
         return false;
     }
 
     currentSpeed = speed;
 
-    //unlock();
+    unlock();
 
     return true;
 }

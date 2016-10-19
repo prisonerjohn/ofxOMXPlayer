@@ -18,7 +18,7 @@ extern "C"
 #include "OMXAudioPlayer.h"
 
 
-class ofxOMXPlayerEngine: public OMXThread
+class ofxOMXPlayerEngine: public ofThread
 {
 public:
     ofxOMXPlayerEngine();
@@ -88,7 +88,7 @@ public:
     
         
     //OMXThread inheritance
-    void process();
+    void threadedFunction();
     
     
     VideoPlayerDirect* directPlayer;
@@ -110,7 +110,6 @@ public:
     void updateFromMediaClock();
     void resetFrameCounter();
     int frameCounter;
-    bool didSeek;
     int startFrame;
 private:
     
