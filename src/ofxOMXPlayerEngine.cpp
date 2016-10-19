@@ -331,11 +331,11 @@ void ofxOMXPlayerEngine::threadedFunction()
                 ofLogVerbose(__func__) << __LINE__ << " " << currentFrame << " of " << getTotalNumFrames();
 
                 ENGINE_LOG("WE SHOULD LOOP");
-                loopFrame = (int)((loop_offset*getFPS())/AV_TIME_BASE);
+                //loopFrame = (int)((loop_offset*getFPS())/AV_TIME_BASE);
                 ofLogVerbose(__func__) << __LINE__ << " " << currentFrame << " of " << getTotalNumFrames();
                 
                 loopCounter++;
-                resetFrameCounter();    
+                //resetFrameCounter();    
                 if (omxReader.wasFileRewound)
                 {
                     omxReader.wasFileRewound = false;
@@ -346,6 +346,7 @@ void ofxOMXPlayerEngine::threadedFunction()
                     ofxOMXPlayerListenerEventData eventData((void *)this);
                     listener->onVideoLoop(eventData);
                 }
+                omxClock->setMediaTime(0.0);
             }
         }
         if(!packet)
