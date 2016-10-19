@@ -335,7 +335,7 @@ void ofxOMXPlayerEngine::threadedFunction()
                 ofLogVerbose(__func__) << __LINE__ << " " << currentFrame << " of " << getTotalNumFrames();
                 
                 loopCounter++;
-                //resetFrameCounter();    
+                resetFrameCounter();    
                 if (omxReader.wasFileRewound)
                 {
                     omxReader.wasFileRewound = false;
@@ -346,7 +346,6 @@ void ofxOMXPlayerEngine::threadedFunction()
                     ofxOMXPlayerListenerEventData eventData((void *)this);
                     listener->onVideoLoop(eventData);
                 }
-                omxClock->setMediaTime(0.0);
             }
         }
         if(!packet)
@@ -414,7 +413,6 @@ void ofxOMXPlayerEngine::threadedFunction()
                             }
                         }
                         ENGINE_LOG("SEEKED");
-                        
                        
                          /*   
                         if(getCurrentFrame()>=getTotalNumFrames())
