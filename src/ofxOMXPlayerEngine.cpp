@@ -10,14 +10,6 @@
 #define LOOP_LOG(x) 
 //#define LOOP_LOG(x)  ofLogVerbose(__func__) << __LINE__ << x;
 
-#define START(x) unsigned long long startTime = ofGetElapsedTimeMillis();
-#define END(x) unsigned long long endTime = ofGetElapsedTimeMillis();
-#define P(x) int ms = endTime-startTime; if((ms)>x) {ofLogNotice(__func__) << "TOOK " << endTime-startTime <<  " MS";}
-
-
-#define START(x)
-#define END(x)
-#define P(x)
 ofxOMXPlayerEngine::ofxOMXPlayerEngine()
 {
     
@@ -311,7 +303,11 @@ bool AreSame(double a, double b)
 {
     return fabs(a - b) < DBL_EPSILON;
 }
-#define SLEEP_TIME 20
+#define SLEEP_TIME 10
+#define THREAD_FUNC sleep
+//#define THREAD_FUNC omxClock->sleep
+
+#define THREAD_SLEEP THREAD_FUNC(SLEEP_TIME);
 #pragma mark threading
 void ofxOMXPlayerEngine::threadedFunction()
 {
@@ -441,7 +437,7 @@ void ofxOMXPlayerEngine::threadedFunction()
                 }
                 else
                 {
-                    sleep(SLEEP_TIME);
+                    THREAD_SLEEP;
                     LOOP_LOG(" continue");
                     continue;
                 }
@@ -484,7 +480,7 @@ void ofxOMXPlayerEngine::threadedFunction()
                 }
                 else
                 {
-                    sleep(SLEEP_TIME);
+                    THREAD_SLEEP;
                 }
                 
             }
@@ -496,7 +492,7 @@ void ofxOMXPlayerEngine::threadedFunction()
                 }
                 else
                 {
-                    sleep(SLEEP_TIME);
+                    THREAD_SLEEP;
                 }
             }
             else
@@ -508,7 +504,7 @@ void ofxOMXPlayerEngine::threadedFunction()
         }else
         {
             LOOP_LOG("no packet, sleeping");
-            sleep(SLEEP_TIME);
+            THREAD_SLEEP;
         }
 
     }
@@ -674,7 +670,7 @@ void ofxOMXPlayerEngine::resetFrameCounter()
     frameCounter = 0;
     if(texturedPlayer)
     {
-        texturedPlayer->resetFrameCounter();
+        //texturedPlayer->resetFrameCounter();
     }
     unlock();
 }
@@ -693,7 +689,6 @@ void ofxOMXPlayerEngine::updateCurrentFrame()
         frameCounter = ((omxClock->getMediaTime()*getFPS())/AV_TIME_BASE);
     }
     
-    frameCounter = ((omxClock->getMediaTime()*getFPS())/AV_TIME_BASE);
     END();
     P(2);
     unlock();  

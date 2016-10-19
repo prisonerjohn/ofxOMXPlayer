@@ -1002,6 +1002,19 @@ string omxErrorToString(OMX_ERRORTYPE error)
 #define OMX_LOG_LEVEL OMX_LOG_LEVEL_ERROR_ONLY
 #endif
 
+
+#if defined(DO_MEASURE)
+#define START(x) unsigned long long startTime = ofGetElapsedTimeMillis();
+#define END(x) unsigned long long endTime = ofGetElapsedTimeMillis();
+#define P(x) int ms = endTime-startTime; if((ms)>x) {ofLogNotice(__func__) << "TOOK " << endTime-startTime <<  " MS";}
+
+#else
+
+#define START(x)
+#define END(x)
+#define P(x)
+
+#endif
 static  
 void logOMXError(OMX_ERRORTYPE error, string comments="", string functionName="", int lineNumber=0)
 {

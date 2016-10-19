@@ -1,11 +1,5 @@
 #include "OMXClock.h"
 
-
-#define START(x) unsigned long long startTime = ofGetElapsedTimeMillis();
-#define END(x) unsigned long long endTime = ofGetElapsedTimeMillis();
-#define P(x) int ms = endTime-startTime; if((ms)>x) {ofLogNotice(__func__) << "TOOK " << endTime-startTime <<  " MS";}
-
-
 OMXClock::OMXClock()
 {
 
