@@ -170,6 +170,11 @@ public:
                 doDeleteCurrent = true;
                 break;
             }
+            case 'a' :
+            {
+                currentTest->omxPlayer->engine->enableAdjustments();
+                break;
+            }
                 
         }
         if(currentTest)

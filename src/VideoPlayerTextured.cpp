@@ -11,6 +11,14 @@
 VideoPlayerTextured::VideoPlayerTextured()
 {
 	textureDecoder = NULL;
+    clockNeedsAdjustment = false;
+}
+void VideoPlayerTextured::setFrameCounter(int frameCounter_)
+{
+    lockDecoder();
+    textureDecoder->frameCounter = frameCounter_;
+    ofLogVerbose(__func__)  << "";
+    unlockDecoder();
 }
 
 void VideoPlayerTextured::resetFrameCounter()

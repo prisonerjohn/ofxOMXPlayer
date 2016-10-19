@@ -53,6 +53,8 @@ ofxOMXPlayerEngine::ofxOMXPlayerEngine()
     frameCounter = 0;
     startFrame = 0;
     loopFrame = 0;
+    clockNeedsAdjustment = false;
+    adjustments = 1;
 }
 
 #pragma mark startup/setup
@@ -254,8 +256,9 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
             if(doSeek)
             {
                 startFrame = (int)videoPlayer->getFPS()*(int)startTimeInSeconds;
-                ofLogVerbose(__func__) << "Seeking start of video to " << startTimeInSeconds << " seconds, frame: " << startFrame;
-
+                int seekedFrameFromStartPTS = (startpts*getFPS())/AV_TIME_BASE;
+                clockNeedsAdjustment = true;
+                ofLogVerbose(__func__) << "Seeking start of video to " << startTimeInSeconds << " seconds, frame: " << startFrame << " seekedFrameFromStartPTS: " <<seekedFrameFromStartPTS;
             }else
             {
                 ofLogError(__func__) << "COULD NOT SEEK TO " << startTimeInSeconds;
@@ -313,6 +316,29 @@ void ofxOMXPlayerEngine::threadedFunction()
 {
     while (isThreadRunning())
     {
+        
+        if(clockNeedsAdjustment)
+        {
+            if(texturedPlayer)
+            {
+                omxClock->pause();
+                frameCounter = ((omxClock->getMediaTime()*getFPS())/AV_TIME_BASE);
+                texturedPlayer->setFrameCounter(frameCounter);
+                ofLogVerbose(__func__) << "adjustments: " << adjustments << "frameCounter: " << frameCounter;
+                omxClock->resume();
+                clockNeedsAdjustment = false;
+                adjustments--;
+                if(!adjustments)
+                {
+                    
+                }
+            }else
+            {
+                clockNeedsAdjustment = false;
+            }
+            
+        }
+        
         updateCurrentFrame();
        // ofLogVerbose(__func__) << omxReader.packetsAllocated << " packetsFreed: " << omxReader.packetsFreed << " leaked: " << (omxReader.packetsAllocated-omxReader.packetsFreed);
         //ofLogVerbose(__func__) << " remaining packets: " << remainingPackets;
@@ -409,30 +435,6 @@ void ofxOMXPlayerEngine::threadedFunction()
                             }
                         }
                         ENGINE_LOG("SEEKED");
-                       
-                         /*   
-                        if(getCurrentFrame()>=getTotalNumFrames())
-                        {
-                            if(!doOnLoop)
-                            {
-                                doOnLoop=true;
-                                
-                                if (previousLoopOffset != loop_offset)
-                                {
-                                    previousLoopOffset = loop_offset;
-                                    loopCounter++;                    
-                                    ofLog(OF_LOG_VERBOSE, "Loop offset : %8.02f\n", loop_offset / AV_TIME_BASE);
-                                    doOnLoop = true;
-                                    
-                                }
-                                if (omxReader.wasFileRewound)
-                                {
-                                    doOnLoop = true;
-                                    omxReader.wasFileRewound = false;
-                                }
-
-                            }
-                        }*/
                     }
                 }
                 else
@@ -668,6 +670,7 @@ void ofxOMXPlayerEngine::resetFrameCounter()
     lock();
     ofLogVerbose(__func__) << "frameCounter: " << frameCounter;
     frameCounter = 0;
+    startFrame = 0;
     if(texturedPlayer)
     {
         //texturedPlayer->resetFrameCounter();
@@ -675,7 +678,14 @@ void ofxOMXPlayerEngine::resetFrameCounter()
     unlock();
 }
 
-
+void ofxOMXPlayerEngine::enableAdjustments()
+{
+    if(texturedPlayer)
+    {
+        adjustments = 10;
+        clockNeedsAdjustment = true;
+    }
+}
 void ofxOMXPlayerEngine::updateCurrentFrame()
 {
     lock();
@@ -699,13 +709,8 @@ int ofxOMXPlayerEngine::getCurrentFrame()
     lock();
     START();
     
-    result = frameCounter-loopFrame;
-    /*
-    if(loopFrame)
-    {
-        ofLog() << "frameCounter: " << frameCounter << "loopFrame: " << loopFrame;
+    result = frameCounter-loopFrame+startFrame;
 
-    }*/
     END();
     P(2);
     unlock();

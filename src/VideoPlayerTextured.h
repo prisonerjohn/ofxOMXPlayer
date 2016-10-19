@@ -19,5 +19,12 @@ public:
     VideoDecoderTextured* textureDecoder;
     EGLImageKHR eglImage;
     void resetFrameCounter();
+    void setFrameCounter(int);
+    bool clockNeedsAdjustment;
+    
+    void onDecode()
+    {
+        ofLogVerbose(__func__)  << "";
+    }
 };
 

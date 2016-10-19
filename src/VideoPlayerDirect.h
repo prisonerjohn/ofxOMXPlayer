@@ -15,5 +15,8 @@ public:
     bool open(StreamInfo hints, OMXClock* omxClock_, OMXReader*, ofxOMXPlayerSettings& settings_);
     bool openDecoder();
     void close();
-    
+    void onDecode()
+    {
+        ofLogVerbose(__func__)  << "";
+    }
 };

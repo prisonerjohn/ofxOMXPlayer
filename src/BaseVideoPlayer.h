@@ -74,4 +74,7 @@ public:
     OMXClock* omxClock;
     OMXReader* omxReader;
     void adjustFPS();
+    
+    virtual void onDecode()= 0;
+
 };

@@ -88,5 +88,6 @@ public:
     StreamInfo streamInfo;
     CriticalSection  m_critSection;
     int EndOfFrameCounter;
+    
 };
 
