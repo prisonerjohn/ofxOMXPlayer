@@ -18,5 +18,6 @@ public:
     
     VideoDecoderTextured* textureDecoder;
     EGLImageKHR eglImage;
+    void resetFrameCounter();
 };
 

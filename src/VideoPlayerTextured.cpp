@@ -13,7 +13,13 @@ VideoPlayerTextured::VideoPlayerTextured()
 	textureDecoder = NULL;
 }
 
-
+void VideoPlayerTextured::resetFrameCounter()
+{
+    lockDecoder();
+    textureDecoder->frameCounter = 0;
+    ofLogVerbose(__func__)  << "";
+    unlockDecoder();
+}
 VideoPlayerTextured::~VideoPlayerTextured()
 {
     close();

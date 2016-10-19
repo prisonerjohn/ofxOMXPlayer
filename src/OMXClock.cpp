@@ -69,6 +69,9 @@ bool OMXClock::init(bool has_video, bool has_audio)
         refClock.eClock = OMX_TIME_RefClockVideo;
     }
     
+    //TODO WATCHOUT
+    refClock.eClock = OMX_TIME_RefClockVideo;
+    
     error = clockComponent.setConfig(OMX_IndexConfigTimeActiveRefClock, &refClock);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone)

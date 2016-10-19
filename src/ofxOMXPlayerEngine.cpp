@@ -331,7 +331,7 @@ void ofxOMXPlayerEngine::threadedFunction()
                 ofLogVerbose(__func__) << __LINE__ << " " << currentFrame << " of " << getTotalNumFrames();
 
                 ENGINE_LOG("WE SHOULD LOOP");
-                //loopFrame = (int)((loop_offset*getFPS())/AV_TIME_BASE);
+                loopFrame = (int)((loop_offset*getFPS())/AV_TIME_BASE);
                 ofLogVerbose(__func__) << __LINE__ << " " << currentFrame << " of " << getTotalNumFrames();
                 
                 loopCounter++;
@@ -670,7 +670,12 @@ float ofxOMXPlayerEngine::getDurationInSeconds()
 void ofxOMXPlayerEngine::resetFrameCounter()
 {
     lock();
+    ofLogVerbose(__func__) << "frameCounter: " << frameCounter;
     frameCounter = 0;
+    if(texturedPlayer)
+    {
+        texturedPlayer->resetFrameCounter();
+    }
     unlock();
 }
 
@@ -679,6 +684,15 @@ void ofxOMXPlayerEngine::updateCurrentFrame()
 {
     lock();
     START();
+    
+    if(texturedPlayer)
+    {
+        frameCounter = texturedPlayer->textureDecoder->frameCounter;
+    }else
+    {
+        frameCounter = ((omxClock->getMediaTime()*getFPS())/AV_TIME_BASE);
+    }
+    
     frameCounter = ((omxClock->getMediaTime()*getFPS())/AV_TIME_BASE);
     END();
     P(2);
