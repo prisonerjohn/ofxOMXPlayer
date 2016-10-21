@@ -258,7 +258,7 @@ void BaseVideoPlayer::process()
 				omxPacket = NULL;
 			}
 		}
-        onDecode();
+        //onDecode();
 		unlockDecoder();
 
 

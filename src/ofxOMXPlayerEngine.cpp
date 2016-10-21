@@ -317,27 +317,7 @@ void ofxOMXPlayerEngine::threadedFunction()
     while (isThreadRunning())
     {
         
-        if(clockNeedsAdjustment)
-        {
-            if(texturedPlayer)
-            {
-                omxClock->pause();
-                frameCounter = ((omxClock->getMediaTime()*getFPS())/AV_TIME_BASE);
-                texturedPlayer->setFrameCounter(frameCounter);
-                ofLogVerbose(__func__) << "adjustments: " << adjustments << "frameCounter: " << frameCounter;
-                omxClock->resume();
-                clockNeedsAdjustment = false;
-                adjustments--;
-                if(!adjustments)
-                {
-                    
-                }
-            }else
-            {
-                clockNeedsAdjustment = false;
-            }
-            
-        }
+        
         
         updateCurrentFrame();
        // ofLogVerbose(__func__) << omxReader.packetsAllocated << " packetsFreed: " << omxReader.packetsFreed << " leaked: " << (omxReader.packetsAllocated-omxReader.packetsFreed);
@@ -585,6 +565,7 @@ void ofxOMXPlayerEngine::scrubForward(int step)
         omxClock->step(1);
         setPaused(false);
     }
+    //enableAdjustments();
 }
 
 void ofxOMXPlayerEngine::stepFrameForward()
@@ -693,6 +674,17 @@ void ofxOMXPlayerEngine::updateCurrentFrame()
     
     if(texturedPlayer)
     {
+        if(clockNeedsAdjustment)
+        {
+            if(texturedPlayer)
+            {
+                frameCounter = ((omxClock->getMediaTime()*getFPS())/AV_TIME_BASE);
+                texturedPlayer->setFrameCounter(frameCounter);
+                ofLogVerbose(__func__) << "ADJUSTED frameCounter: " << frameCounter;
+                clockNeedsAdjustment = false;
+            }
+            
+        }
         frameCounter = texturedPlayer->textureDecoder->frameCounter;
     }else
     {
