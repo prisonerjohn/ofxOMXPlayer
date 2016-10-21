@@ -3,7 +3,6 @@
 
 VideoDecoderTextured::VideoDecoderTextured()
 {
-    frameCounter = 0;
 }
 
 
@@ -13,7 +12,6 @@ VideoDecoderTextured::VideoDecoderTextured()
 OMX_ERRORTYPE VideoDecoderTextured::onFillBuffer(Component* component, OMX_BUFFERHEADERTYPE* pBuffer)
 {	
 	OMX_ERRORTYPE error = OMX_FillThisBuffer(component->handle, pBuffer);
-    frameCounter++;
 	return error;
 }
 
