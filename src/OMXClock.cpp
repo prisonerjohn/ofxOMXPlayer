@@ -9,6 +9,7 @@ OMXClock::OMXClock()
     pauseState = false;
     fps = 0;
     frameCounter = 0;
+    startFrame = 0;
     currentSpeed  = DVD_PLAYSPEED_NORMAL;
     previousSpeed = currentSpeed;
     pthread_mutex_init(&m_lock, NULL);
@@ -121,7 +122,7 @@ bool  OMXClock::stop()
     return true;
 }
 
-bool OMXClock::start(double pts)
+bool OMXClock::start(double pts, int fps_)
 {
     if(clockComponent.handle == NULL)
     {
@@ -130,7 +131,7 @@ bool OMXClock::start(double pts)
     }
 
     lock();
-    
+    fps =fps_;
     OMX_ERRORTYPE error = clockComponent.setState(OMX_StateExecuting);
     OMX_TRACE(error);
     if (error != OMX_ErrorNone)
@@ -151,7 +152,8 @@ bool OMXClock::start(double pts)
         unlock();
         return false;
     }
-
+    startFrame = (pts*fps)/AV_TIME_BASE;
+    ofLogVerbose(__func__) << "startFrame: " << startFrame;
     unlock();
 
     return true;
@@ -187,24 +189,6 @@ bool OMXClock::step(int steps)
     return true;
 }
 
-bool OMXClock::reset()
-{
-    if(clockComponent.handle == NULL)
-    {
-        ofLogError(__func__) << "NO CLOCK YET";
-        return false;
-    }
-
-    lock();
-
-    stop();
-    start(0.0);
-
-    unlock();
-
-    return true;
-}
-
 double OMXClock::getMediaTime()
 {
     if(clockComponent.handle == NULL)
@@ -214,7 +198,6 @@ double OMXClock::getMediaTime()
     }
     double pts = 0;
     lock();
-    START();
     OMX_ERRORTYPE error = OMX_ErrorNone;
     
 
@@ -222,9 +205,6 @@ double OMXClock::getMediaTime()
     OMX_INIT_STRUCTURE(timeStamp);
     timeStamp.nPortIndex = clockComponent.inputPort;
 
-    //error = clockComponent.getConfig(OMX_IndexConfigTimeCurrentMediaTime, &timeStamp);
-    
-    
     error = OMX_GetConfig(clockComponent.handle, OMX_IndexConfigTimeCurrentMediaTime, &timeStamp);
     
     
@@ -235,9 +215,6 @@ double OMXClock::getMediaTime()
         unlock();
         pts = FromOMXTime(timeStamp.nTimestamp);
     }
-    END();
-    P(2);
-    
     if(fps)
     {
         frameCounter = (pts*fps)/AV_TIME_BASE;

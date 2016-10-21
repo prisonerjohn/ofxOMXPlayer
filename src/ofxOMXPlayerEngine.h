@@ -110,7 +110,6 @@ public:
     void updateFromMediaClock();
     void resetFrameCounter();
     int frameCounter;
-    int startFrame;
     
 private:
     

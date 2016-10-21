@@ -31,9 +31,9 @@ public:
         return pauseState;
     };
     bool stop();
-    bool start(double pts);
+    bool start(double pts, int fps_);
     bool step(int steps = 1);
-    bool reset();
+    //bool reset();
     double getMediaTime();
     bool setMediaTime(double pts);
     bool pause();
@@ -45,14 +45,15 @@ public:
     };
     Component* getComponent();
     bool OMXStateExecute();
-    void setToIdleState();
     bool enableHDMISync();
     int64_t getAbsoluteClock();
     void sleep(unsigned int dwMilliSeconds);
     int getFrameCounter();
+    
+private:
+    Component clockComponent;
     int fps;
-
-protected:
+    int startFrame;
     bool              pauseState;
     bool              hasVideo;
     bool              hasAudio;
@@ -60,7 +61,4 @@ protected:
     int               previousSpeed;
     int frameCounter;
     pthread_mutex_t   m_lock;
-private:
-    Component clockComponent;
-    
 };
