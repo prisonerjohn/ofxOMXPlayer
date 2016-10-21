@@ -241,6 +241,10 @@ double OMXClock::getMediaTime()
     if(fps)
     {
         frameCounter = (pts*fps)/AV_TIME_BASE;
+        //ofLogVerbose(__func__) << "frameCounter: " << frameCounter;
+    }else
+    {
+        ofLogError(__func__) << "NO fps";
     }
     
     unlock();

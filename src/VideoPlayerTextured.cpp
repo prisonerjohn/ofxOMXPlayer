@@ -11,7 +11,6 @@
 VideoPlayerTextured::VideoPlayerTextured()
 {
 	textureDecoder = NULL;
-    clockNeedsAdjustment = false;
 }
 
 VideoPlayerTextured::~VideoPlayerTextured()

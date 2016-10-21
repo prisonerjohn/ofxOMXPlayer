@@ -53,8 +53,6 @@ ofxOMXPlayerEngine::ofxOMXPlayerEngine()
     frameCounter = 0;
     startFrame = 0;
     loopFrame = 0;
-    clockNeedsAdjustment = false;
-    adjustments = 1;
 }
 
 #pragma mark startup/setup
@@ -257,7 +255,6 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
             {
                 startFrame = (int)videoPlayer->getFPS()*(int)startTimeInSeconds;
                 int seekedFrameFromStartPTS = (startpts*getFPS())/AV_TIME_BASE;
-                clockNeedsAdjustment = true;
                 ofLogVerbose(__func__) << "Seeking start of video to " << startTimeInSeconds << " seconds, frame: " << startFrame << " seekedFrameFromStartPTS: " <<seekedFrameFromStartPTS;
             }else
             {
@@ -322,7 +319,7 @@ void ofxOMXPlayerEngine::threadedFunction()
         updateCurrentFrame();
        // ofLogVerbose(__func__) << omxReader.packetsAllocated << " packetsFreed: " << omxReader.packetsFreed << " leaked: " << (omxReader.packetsAllocated-omxReader.packetsFreed);
         //ofLogVerbose(__func__) << " remaining packets: " << remainingPackets;
-        //ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
+        ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
         if(doLooping)
         {
 
@@ -649,40 +646,34 @@ float ofxOMXPlayerEngine::getDurationInSeconds()
 void ofxOMXPlayerEngine::resetFrameCounter()
 {
     lock();
-    ofLogVerbose(__func__) << "frameCounter: " << frameCounter;
+    //ofLogVerbose(__func__) << "frameCounter: " << frameCounter;
     frameCounter = 0;
     startFrame = 0;
-    if(texturedPlayer)
+    if(directPlayer)
     {
-        //texturedPlayer->resetFrameCounter();
+        omxClock->getMediaTime();
     }
+    frameCounter = omxClock->getFrameCounter();
     unlock();
 }
 
-void ofxOMXPlayerEngine::enableAdjustments()
-{
-    if(texturedPlayer)
-    {
-        adjustments = 10;
-        clockNeedsAdjustment = true;
-    }
-}
+
 void ofxOMXPlayerEngine::updateCurrentFrame()
 {
     lock();
+    if(directPlayer)
+    {
+        omxClock->getMediaTime();
+    }
     frameCounter = omxClock->getFrameCounter();
+    //ofLogVerbose(__func__) << "frameCounter: " << frameCounter;
     unlock();  
 }
 int ofxOMXPlayerEngine::getCurrentFrame()
 {
     int result = 0;
     lock();
-    START();
-    
     result = frameCounter-loopFrame+startFrame;
-
-    END();
-    P(2);
     unlock();
     return result;
 }

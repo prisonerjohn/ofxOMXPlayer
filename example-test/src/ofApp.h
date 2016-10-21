@@ -172,7 +172,7 @@ public:
             }
             case 'a' :
             {
-                currentTest->omxPlayer->engine->enableAdjustments();
+                //currentTest->omxPlayer->engine->enableAdjustments();
                 break;
             }
                 

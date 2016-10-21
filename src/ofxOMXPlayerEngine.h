@@ -111,9 +111,7 @@ public:
     void resetFrameCounter();
     int frameCounter;
     int startFrame;
-    bool clockNeedsAdjustment;
-    int adjustments;
-    void enableAdjustments();
+    
 private:
     
     void enableDoLoop();
