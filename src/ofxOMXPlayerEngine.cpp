@@ -264,7 +264,7 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
                 ofLogError(__func__) << "COULD NOT SEEK TO " << startTimeInSeconds;
             }
         }
-        
+        omxClock->fps=getFPS();
         omxClock->start(startpts);
         
         ENGINE_LOG("Opened video PASS");
@@ -670,29 +670,7 @@ void ofxOMXPlayerEngine::enableAdjustments()
 void ofxOMXPlayerEngine::updateCurrentFrame()
 {
     lock();
-    START();
-    
-    if(texturedPlayer)
-    {
-        if(clockNeedsAdjustment)
-        {
-            if(texturedPlayer)
-            {
-                frameCounter = ((omxClock->getMediaTime()*getFPS())/AV_TIME_BASE);
-                texturedPlayer->setFrameCounter(frameCounter);
-                ofLogVerbose(__func__) << "ADJUSTED frameCounter: " << frameCounter;
-                clockNeedsAdjustment = false;
-            }
-            
-        }
-        frameCounter = texturedPlayer->textureDecoder->frameCounter;
-    }else
-    {
-        frameCounter = ((omxClock->getMediaTime()*getFPS())/AV_TIME_BASE);
-    }
-    
-    END();
-    P(2);
+    frameCounter = omxClock->getFrameCounter();
     unlock();  
 }
 int ofxOMXPlayerEngine::getCurrentFrame()

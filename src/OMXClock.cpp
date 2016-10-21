@@ -7,7 +7,8 @@ OMXClock::OMXClock()
     hasVideo   = false;
     hasAudio   = false;
     pauseState = false;
-
+    fps = 0;
+    frameCounter = 0;
     currentSpeed  = DVD_PLAYSPEED_NORMAL;
     previousSpeed = currentSpeed;
     pthread_mutex_init(&m_lock, NULL);
@@ -237,11 +238,25 @@ double OMXClock::getMediaTime()
     END();
     P(2);
     
+    if(fps)
+    {
+        frameCounter = (pts*fps)/AV_TIME_BASE;
+    }
+    
     unlock();
+   
+    
 
     return pts;
 }
-
+int OMXClock::getFrameCounter()
+{
+    int result = 0;
+    lock();
+    result = frameCounter;
+    unlock();
+    return result;
+}
 // Set the media time, so calls to get media time use the updated value,
 // useful after a seek so mediatime is updated immediately (rather than waiting for first decoded packet)
 bool OMXClock::setMediaTime(double pts)

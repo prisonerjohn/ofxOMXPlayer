@@ -18,15 +18,7 @@ static inline int64_t FromOMXTime(OMX_TICKS ticks)
 
 class OMXClock
 {
-protected:
-    bool              pauseState;
-    bool              hasVideo;
-    bool              hasAudio;
-    int               currentSpeed;
-    int               previousSpeed;
-    pthread_mutex_t   m_lock;
-private:
-    Component clockComponent;
+
 public:
     OMXClock();
     ~OMXClock();
@@ -57,4 +49,18 @@ public:
     bool enableHDMISync();
     int64_t getAbsoluteClock();
     void sleep(unsigned int dwMilliSeconds);
+    int getFrameCounter();
+    int fps;
+
+protected:
+    bool              pauseState;
+    bool              hasVideo;
+    bool              hasAudio;
+    int               currentSpeed;
+    int               previousSpeed;
+    int frameCounter;
+    pthread_mutex_t   m_lock;
+private:
+    Component clockComponent;
+    
 };
