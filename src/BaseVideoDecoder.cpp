@@ -46,25 +46,25 @@ BaseVideoDecoder::~BaseVideoDecoder()
     OMX_ERRORTYPE error = OMX_ErrorNone; 
     
     //scheduler->clock 
-    error = clockTunnel.Deestablish(FUNCTION_LINE);
+    error = clockTunnel.Deestablish();
     OMX_TRACE(error);
     
     //scheduler->renderer
-    error = schedulerTunnel.Deestablish(FUNCTION_LINE);
+    error = schedulerTunnel.Deestablish();
     OMX_TRACE(error);
     
     ofLogVerbose() << "doFilters: " << doFilters;
     if(doFilters)
     {
         //imagefx->scheduler
-        //error = imageFXTunnel.Deestablish(FUNCTION_LINE); 
+        //error = imageFXTunnel.Deestablish(); 
         //OMX_TRACE(error);
     }
     
     
     
     //decoder->scheduler or decoder->imagefx(dofilters) 
-    error = decoderTunnel.Deestablish(FUNCTION_LINE);
+    error = decoderTunnel.Deestablish();
     OMX_TRACE(error);
     
     
@@ -182,7 +182,7 @@ bool BaseVideoDecoder::decode(OMXPacket* omxPacket)
             OMX_BUFFERHEADERTYPE *omxBuffer = decoderComponent.getInputBuffer(500);
             if(omxBuffer == NULL)
             {
-                ofLogError(__func__) << "Decode timeout";
+                ofLogNotice(__func__) << "Decode timeout";
                 return false;
             }
             
@@ -192,13 +192,14 @@ bool BaseVideoDecoder::decode(OMXPacket* omxPacket)
             if(doSetStartTime)
             {
                 omxBuffer->nFlags |= OMX_BUFFERFLAG_STARTTIME;
-                ofLog(OF_LOG_VERBOSE, "VideoDecoderDirect::Decode VDec : setStartTime %f\n", (pts == DVD_NOPTS_VALUE ? 0.0 : pts) / AV_TIME_BASE);
+                //ofLog(OF_LOG_VERBOSE, "VideoDecoderDirect::Decode VDec : setStartTime %f\n", (pts == DVD_NOPTS_VALUE ? 0.0 : pts) / AV_TIME_BASE);
                 doSetStartTime = false;
             }
             else if(pts == DVD_NOPTS_VALUE)
             {
+                //probably a .h264 file
                 omxBuffer->nFlags |= OMX_BUFFERFLAG_TIME_UNKNOWN;
-                ofLogVerbose(__func__) << "USING OMX_BUFFERFLAG_TIME_UNKNOWN";
+                //ofLogVerbose(__func__) << "USING OMX_BUFFERFLAG_TIME_UNKNOWN";
             }
             
             omxBuffer->nTimeStamp = ToOMXTime((uint64_t)(pts == DVD_NOPTS_VALUE) ? 0 : pts);

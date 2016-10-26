@@ -108,18 +108,14 @@ public:
     
     void updateCurrentFrame();
     void updateFromMediaClock();
-    void resetFrameCounter();
     int frameCounter;
     
 private:
     
-    void enableDoLoop();
-    void disableDoLoop();
-    bool getDoLoop();
-    
     OMXPacket* packet;
     
-    
+    void sendOnLoop(int lineNumber);
+    void seekToStart();
     
     OMXAudioPlayer* audioPlayer;
     ofxOMXPlayerListener* listener;
@@ -155,6 +151,5 @@ private:
     
     void setDisplayRect(ofRectangle& rectangle);
     bool didReadFile(bool doSkipAvProbe);
-    bool doOnLoop;
 };
 

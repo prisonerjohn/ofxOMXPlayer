@@ -32,7 +32,7 @@ Tunnel::~Tunnel()
 {
     if(isEstablished)
     {
-        Deestablish(__func__);
+        Deestablish();
     }
     
     pthread_mutex_destroy(&m_lock);
@@ -77,10 +77,9 @@ OMX_ERRORTYPE Tunnel::flush()
 }
 
 
-OMX_ERRORTYPE Tunnel::Deestablish(string caller)
+OMX_ERRORTYPE Tunnel::Deestablish()
 {
-    string debugString = sourceComponent->name + " : " + destinationComponent->name;
-    ofLogVerbose(__func__)<< " caller: " << caller << " components: " << debugString;
+    TUNNEL_LOG(ofToString(sourceComponent->name + " : " + destinationComponent->name));
     if (!isEstablished)
     {
         return OMX_ErrorNone;

@@ -15,6 +15,7 @@ public:
         delete omxPlayer;
         omxPlayer = NULL;
         listener = NULL;
+        loopCount = 0;
     }
     void setup(string name_ = "UNDEFINED")
     {

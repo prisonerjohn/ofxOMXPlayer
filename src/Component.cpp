@@ -282,7 +282,7 @@ OMX_BUFFERHEADERTYPE* Component::getInputBuffer(long timeout)
 		int retcode = pthread_cond_timedwait(&m_input_buffer_cond, &m_omx_input_mutex, &endtime);
 		if (retcode != 0)
 		{
-			ofLogError(__func__) << name << " TIMEOUT";
+			ofLogNotice(__func__) << name << " TIMEOUT";
 			break;
 		}
 	}

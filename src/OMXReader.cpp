@@ -137,7 +137,17 @@ bool OMXReader::open(std::string filename, bool doSkipAvProbe)
     }
     else
     {
-        isStream = false;
+        
+        ofFile myFile(fileName);
+        if(myFile.getExtension() == "h264")
+        {
+            ofLogVerbose(__func__) << myFile.getAbsolutePath() << " IS STREAM";
+            isStream = true;
+        }else
+        {
+            isStream = false;
+        }
+        
         fileObject = new File();
         
         if (!fileObject->open(fileName, flags))
@@ -286,8 +296,8 @@ bool OMXReader::close()
 {
     
     
-    updateRemainingPackets(__func__);
-    ofLogVerbose(__func__) << " remainingPackets: " << remainingPackets;
+    //updateRemainingPackets(__func__);
+    //ofLogVerbose(__func__) << " remainingPackets: " << remainingPackets;
 
     if (avFormatContext)
     {
@@ -521,7 +531,7 @@ OMXPacket* OMXReader::Read()
     omxPacket->id = OMXReader::packetCounter;
     packetCounter++;
     packetsAllocated++;
-    updateRemainingPackets(__func__);
+   // updateRemainingPackets(__func__);
     
     
     /* oom error allocation av packet */
@@ -941,7 +951,7 @@ void OMXReader::freePacket(OMXPacket *pkt, string caller)
         }
         free(pkt);
         packetsFreed++;
-        updateRemainingPackets(__func__);
+        //updateRemainingPackets(__func__);
     }
 }
 

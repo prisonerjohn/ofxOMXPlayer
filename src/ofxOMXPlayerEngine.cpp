@@ -1,11 +1,11 @@
 #include "ofxOMXPlayerEngine.h"
 
 
-//#if OMX_LOG_LEVEL > OMX_LOG_LEVEL_ERROR_ONLY
+#if OMX_LOG_LEVEL > OMX_LOG_LEVEL_ERROR_ONLY
 #define ENGINE_LOG(x)  ofLogVerbose(__func__) << ofToString(x);
-//#else
-//#define ENGINE_LOG(x)
-//#endif
+#else
+#define ENGINE_LOG(x)
+#endif
 
 #define LOOP_LOG(x) 
 //#define LOOP_LOG(x)  ofLogVerbose(__func__) << __LINE__ << x;
@@ -49,7 +49,6 @@ ofxOMXPlayerEngine::ofxOMXPlayerEngine()
     
     eglImage = NULL;
     doRestart = false;
-    doOnLoop = false;
     frameCounter = 0;
     loopFrame = 0;
 }
@@ -255,12 +254,6 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
                 ofLogError(__func__) << "COULD NOT SEEK TO " << startTimeInSeconds;
             }
         }
-        
-        /*
-         startFrame = (int)videoPlayer->getFPS()*(int)startTimeInSeconds;
-         int seekedFrameFromStartPTS = (startpts*getFPS())/AV_TIME_BASE;
-         ofLogVerbose(__func__) << "Seeking start of video to " << startTimeInSeconds << " seconds, frame: " << startFrame << " seekedFrameFromStartPTS: " <<seekedFrameFromStartPTS;
-         */
         omxClock->start(startpts, getFPS());
         
         ENGINE_LOG("Opened video PASS");
@@ -276,31 +269,48 @@ bool ofxOMXPlayerEngine::openPlayer(int startTimeInSeconds)
     }
 }
 
-void ofxOMXPlayerEngine::enableDoLoop()
+
+void ofxOMXPlayerEngine::sendOnLoop(int lineNumber)
 {
+    ofLogVerbose(__func__) << "FROM " << lineNumber;
     lock();
-    doOnLoop = true;
+    loopCounter++;
+    frameCounter = 0;
+    if(directPlayer)
+    {
+        omxClock->getMediaTime();
+    }
+    frameCounter = omxClock->getFrameCounter();    
+    
+    if (listener != NULL)
+    {
+        
+        ofxOMXPlayerListenerEventData eventData((void *)this);
+        listener->onVideoLoop(eventData);
+    }
     unlock();
-}
-void ofxOMXPlayerEngine::disableDoLoop()
-{
-    lock();
-    doOnLoop = false;
-    unlock();
-}
-bool ofxOMXPlayerEngine::getDoLoop()
-{
-    bool result = false;
-    lock();
-    result = doOnLoop;
-    unlock();
-    return result;
 }
 
-
-bool AreSame(double a, double b)
+void ofxOMXPlayerEngine::seekToStart()
 {
-    return fabs(a - b) < DBL_EPSILON;
+    lock();
+    ENGINE_LOG("SEEKED");
+    omxReader.SeekTime(0 * 1000.0f, AVSEEK_FLAG_BACKWARD, &startpts);
+    
+    packet = omxReader.Read();
+    
+    if(hasAudio)
+    {
+        loop_offset = audioPlayer->getCurrentPTS();
+    }
+    else
+    {
+        if(hasVideo)
+        {
+            loop_offset = videoPlayer->getCurrentPTS();
+        }
+    }
+    unlock();
 }
 #define SLEEP_TIME 10
 #define THREAD_FUNC sleep
@@ -319,30 +329,19 @@ void ofxOMXPlayerEngine::threadedFunction()
        // ofLogVerbose(__func__) << omxReader.packetsAllocated << " packetsFreed: " << omxReader.packetsFreed << " leaked: " << (omxReader.packetsAllocated-omxReader.packetsFreed);
         //ofLogVerbose(__func__) << " remaining packets: " << remainingPackets;
         //ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
-        if(doLooping && nFrames)
+        if(doLooping && !omxReader.isStream)
         {
 
             int currentFrame = getCurrentFrame();
             
             if(currentFrame && currentFrame>=getTotalNumFrames())
             {
-                ofLogVerbose(__func__) << __LINE__ << " " << currentFrame << " of " << getTotalNumFrames();
+                //ofLogVerbose(__func__) << __LINE__ << " " << currentFrame << " of " << getTotalNumFrames();
 
                 ENGINE_LOG("WE SHOULD LOOP");
                 loopFrame = (int)((loop_offset*getFPS())/AV_TIME_BASE);
+                sendOnLoop(__LINE__);
                 
-                loopCounter++;
-                resetFrameCounter();    
-                if (omxReader.wasFileRewound)
-                {
-                    omxReader.wasFileRewound = false;
-                }
-                if (listener != NULL)
-                {
-                    
-                    ofxOMXPlayerListenerEventData eventData((void *)this);
-                    listener->onVideoLoop(eventData);
-                }
             }
         }
         if(!packet)
@@ -389,25 +388,21 @@ void ofxOMXPlayerEngine::threadedFunction()
                 {
                     if(omxReader.isStream)
                     {
-                        doRestart = true;
+                        if(!omxReader.fileObject)
+                        {
+                            doRestart = true; 
+                        }else
+                        {
+                            seekToStart();
+                        }
+                        if (omxReader.wasFileRewound)
+                        {
+                            omxReader.wasFileRewound = false;
+                        }
+                        sendOnLoop(__LINE__);
                     }else
                     {
-                        omxReader.SeekTime(0 * 1000.0f, AVSEEK_FLAG_BACKWARD, &startpts);
-                        
-                        packet = omxReader.Read();
-                        
-                        if(hasAudio)
-                        {
-                            loop_offset = audioPlayer->getCurrentPTS();
-                        }
-                        else
-                        {
-                            if(hasVideo)
-                            {
-                                loop_offset = videoPlayer->getCurrentPTS();
-                            }
-                        }
-                        ENGINE_LOG("SEEKED");
+                        seekToStart();
                     }
                 }
                 else
@@ -639,18 +634,7 @@ float ofxOMXPlayerEngine::getDurationInSeconds()
 }
 
 
-void ofxOMXPlayerEngine::resetFrameCounter()
-{
-    lock();
-    //ofLogVerbose(__func__) << "frameCounter: " << frameCounter;
-    frameCounter = 0;
-    if(directPlayer)
-    {
-        omxClock->getMediaTime();
-    }
-    frameCounter = omxClock->getFrameCounter();
-    unlock();
-}
+
 
 
 void ofxOMXPlayerEngine::updateCurrentFrame()
