@@ -319,11 +319,11 @@ void ofxOMXPlayerEngine::threadedFunction()
        // ofLogVerbose(__func__) << omxReader.packetsAllocated << " packetsFreed: " << omxReader.packetsFreed << " leaked: " << (omxReader.packetsAllocated-omxReader.packetsFreed);
         //ofLogVerbose(__func__) << " remaining packets: " << remainingPackets;
         //ofLogVerbose(__func__) << __LINE__ << " " << getCurrentFrame() << " of " << getTotalNumFrames();
-        if(doLooping)
+        if(doLooping && nFrames)
         {
 
             int currentFrame = getCurrentFrame();
-
+            
             if(currentFrame && currentFrame>=getTotalNumFrames())
             {
                 ofLogVerbose(__func__) << __LINE__ << " " << currentFrame << " of " << getTotalNumFrames();
