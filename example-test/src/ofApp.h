@@ -108,6 +108,19 @@ public:
         {
             currentTest->draw();
         }
+        stringstream info;
+        info << "PRESS 1 for PAUSE TEST" << endl;
+        info << "PRESS 2 for RESTART TEST" << endl;
+        info << "PRESS 3 for STEP TEST" << endl;
+        info << "PRESS 4 for SCRUB TEST" << endl;
+        info << "PRESS 5 for SEEK TEST" << endl;
+        info << "PRESS 6 for SEEK TO FRAME TEST" << endl;
+        info << "PRESS 7 for VOLUME TEST" << endl;
+        info << "PRESS 8 for INCREASE SPEED TEST" << endl;
+
+        ofDrawBitmapStringHighlight(info.str(), 600, 60, ofColor(ofColor::black, 90), ofColor::yellow);
+
+
     }
     
     void onTestComplete(BaseTest* test)
@@ -159,12 +172,17 @@ public:
                 playbackTestRunner.startSeekToFrameTest(currentTest);
                 break;
             }
+            
             case '7':
             {
                 playbackTestRunner.startVolumeTest(currentTest);
                 break;
             }
-                
+            case '8':
+            {
+                playbackTestRunner.startSpeedTest(currentTest);
+                break;
+            }    
             case 'n':
             {
                 doDeleteCurrent = true;

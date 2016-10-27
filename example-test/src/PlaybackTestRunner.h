@@ -29,6 +29,10 @@ public:
     
     bool doSeekTest;
     bool doSeekToFrameTest;
+    int seekToFrameFrameNum;
+    
+    bool doIncreaseSpeedTest;
+    int increaseSpeedTestFrameNum;
     PlaybackTestRunner()
     {
         stopAll();
@@ -51,6 +55,17 @@ public:
         
         doSeekTest = false;
         doSeekToFrameTest = false;
+        seekToFrameFrameNum = 0;
+        
+        doIncreaseSpeedTest = false;
+        increaseSpeedTestFrameNum = 0;
+    }
+    void startSpeedTest(BaseTest* test_)
+    {
+        stopAll();
+        test = test_;
+        doIncreaseSpeedTest = true;
+        ofLog() << "STARTING SPEED INCREASE TEST";
     }
     
     void startPauseTest(BaseTest* test_)
@@ -216,8 +231,46 @@ public:
             {
                 test->omxPlayer->seekToFrame(250);
                 doSeekToFrameTest =false;
+                seekToFrameFrameNum = ofGetFrameNum();
             }
-   
+            if(seekToFrameFrameNum)
+            {
+                if(ofGetFrameNum()-seekToFrameFrameNum == 5)
+                {
+                    //doPause = true;
+                    test->omxPlayer->setPaused(true);
+                }
+                if (ofGetFrameNum()-seekToFrameFrameNum >= 60)
+                {
+                    test->omxPlayer->setPaused(false);
+                    seekToFrameFrameNum = 0;
+                }
+            }
+            
+            if(doIncreaseSpeedTest)
+            {
+                if(!increaseSpeedTestFrameNum)
+                {
+                    increaseSpeedTestFrameNum = ofGetFrameNum();
+                    test->omxPlayer->increaseSpeed();
+                }else
+                {
+                    if(ofGetFrameNum()-increaseSpeedTestFrameNum == 60)
+                    {
+                        if(test->omxPlayer->getSpeedMultiplier() < 4)
+                        {
+                            increaseSpeedTestFrameNum = ofGetFrameNum();
+                            test->omxPlayer->increaseSpeed();
+                        }else
+                        {
+                            increaseSpeedTestFrameNum = 0;
+                            doIncreaseSpeedTest = false;
+                            test->omxPlayer->setNormalSpeed();
+                        }
+                    }
+                }
+            }
+            
             if(doVolumeTest)
             {
                 float currentVolume = test->omxPlayer->getVolume();
