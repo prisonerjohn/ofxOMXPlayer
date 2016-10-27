@@ -33,6 +33,10 @@ public:
     
     bool doIncreaseSpeedTest;
     int increaseSpeedTestFrameNum;
+    
+    bool doDecreaseSpeedTest;
+    int decreaseSpeedTestFrameNum;
+
     PlaybackTestRunner()
     {
         stopAll();
@@ -59,8 +63,20 @@ public:
         
         doIncreaseSpeedTest = false;
         increaseSpeedTestFrameNum = 0;
+        
+        doDecreaseSpeedTest = false;
+        decreaseSpeedTestFrameNum = false;
     }
-    void startSpeedTest(BaseTest* test_)
+    
+    void startDecreaseSpeedTest(BaseTest* test_)
+    {
+        stopAll();
+        test = test_;
+        doDecreaseSpeedTest = true;
+        ofLog() << "STARTING SPEED DECREASE TEST";
+    }
+    
+    void startIncreaseSpeedTest(BaseTest* test_)
     {
         stopAll();
         test = test_;
@@ -257,7 +273,7 @@ public:
                 {
                     if(ofGetFrameNum()-increaseSpeedTestFrameNum == 60)
                     {
-                        if(test->omxPlayer->getSpeedMultiplier() < 4)
+                        if(test->omxPlayer->getSpeedMultiplier() < 4.0)
                         {
                             increaseSpeedTestFrameNum = ofGetFrameNum();
                             test->omxPlayer->increaseSpeed();
@@ -270,6 +286,37 @@ public:
                     }
                 }
             }
+            
+            if(doDecreaseSpeedTest)
+            {
+                if(!decreaseSpeedTestFrameNum)
+                {
+                    decreaseSpeedTestFrameNum = ofGetFrameNum();
+                    test->omxPlayer->decreaseSpeed();
+                }else
+                {
+                    if(ofGetFrameNum()-decreaseSpeedTestFrameNum == 60)
+                    {
+                        float currentSpeed = test->omxPlayer->getSpeedMultiplier();
+                        if(currentSpeed > 1/16.0)
+                        {
+                            decreaseSpeedTestFrameNum = ofGetFrameNum();
+                            test->omxPlayer->decreaseSpeed();
+                            //ofLogVerbose(__func__) << "DECREASED";
+                        }else
+                        {
+                            //ofLogVerbose(__func__) << "DECREASED";
+                            decreaseSpeedTestFrameNum = 0;
+                            doDecreaseSpeedTest = false;
+                            test->omxPlayer->setNormalSpeed();
+                        }
+                        
+                        ofLogVerbose(__func__) << "currentSpeed: " << currentSpeed << " getSpeedMultiplier: " << test->omxPlayer->getSpeedMultiplier();
+                    }
+                }
+            }
+            
+            
             
             if(doVolumeTest)
             {

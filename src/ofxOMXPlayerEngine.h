@@ -69,15 +69,12 @@ public:
     StreamInfo videoStreamInfo;
     StreamInfo audioStreamInfo;
     
-    
-    int increaseSpeed();
+    float decreaseSpeed();
+    float increaseSpeed();
     void rewind();
     void setNormalSpeed();
     int normalPlaySpeed;
-    int speedMultiplier;
-    
-    bool doSeek;
-    
+    float speedMultiplier;
     bool openPlayer(int startTimeInSeconds=0);
     
     EGLImageKHR eglImage;

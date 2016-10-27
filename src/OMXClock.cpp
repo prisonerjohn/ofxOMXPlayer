@@ -333,6 +333,7 @@ bool OMXClock::resume()
 
 bool OMXClock::setSpeed(int speed, bool doResume /* = false */)
 {
+    
     ofLogVerbose(__func__) << "speed: " << speed << " doResume: " << doResume;
     if(clockComponent.handle == NULL)
     {
@@ -378,7 +379,7 @@ bool OMXClock::setSpeed(int speed, bool doResume /* = false */)
         unlock();
         return false;
     }
-
+    ofLogVerbose(__func__) << "SETTING currentSpeed: " << currentSpeed << " TO  " << speed;
     currentSpeed = speed;
 
     unlock();

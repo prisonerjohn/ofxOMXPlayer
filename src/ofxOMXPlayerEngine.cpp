@@ -10,6 +10,11 @@
 #define LOOP_LOG(x) 
 //#define LOOP_LOG(x)  ofLogVerbose(__func__) << __LINE__ << x;
 
+int makeSpeed(float x)
+{
+    return 1000*x;
+}
+
 ofxOMXPlayerEngine::ofxOMXPlayerEngine()
 {
     
@@ -44,13 +49,29 @@ ofxOMXPlayerEngine::ofxOMXPlayerEngine()
     previousLoopOffset = -1;
         
     normalPlaySpeed = 1000;
-    speedMultiplier = 1;
-    doSeek = false;
+    speedMultiplier = 1.0;
     
     eglImage = NULL;
     doRestart = false;
     frameCounter = 0;
     loopFrame = 0;
+#if 0
+    currentSpeedIndex = 6;
+    speeds.push_back(makeSpeed(0));
+    speeds.push_back(makeSpeed(1/16.0));
+    speeds.push_back(makeSpeed(1/8.0));
+    speeds.push_back(makeSpeed(1/4.0));
+    speeds.push_back(makeSpeed(1/2.0));
+    speeds.push_back(makeSpeed(0.975));
+    speeds.push_back(makeSpeed(1.0));
+    speeds.push_back(makeSpeed(1.125));
+    speeds.push_back(makeSpeed(1.0));
+    speeds.push_back(makeSpeed(2.0));
+    speeds.push_back(makeSpeed(4.0));
+    speeds.push_back(makeSpeed(8.0));
+    speeds.push_back(makeSpeed(16.0));
+    speeds.push_back(makeSpeed(32.0));
+#endif
 }
 
 #pragma mark startup/setup
@@ -486,21 +507,42 @@ void ofxOMXPlayerEngine::threadedFunction()
 void ofxOMXPlayerEngine::setNormalSpeed()
 {
     lock();
-    speedMultiplier = 1;
+    speedMultiplier = 1.0;
     omxClock->setSpeed(normalPlaySpeed);
     omxReader.setSpeed(normalPlaySpeed);
     unlock();
 }
 
-int ofxOMXPlayerEngine::increaseSpeed()
+
+
+
+float ofxOMXPlayerEngine::decreaseSpeed()
+{
+    lock();
+    
+    if(speedMultiplier*0.5f > 0.0)
+    {
+        speedMultiplier*=0.5f;
+        int newSpeed = normalPlaySpeed*speedMultiplier;
+        
+        omxClock->setSpeed(newSpeed);
+        omxReader.setSpeed(newSpeed);
+    }else
+    {
+        ofLogError(__func__) << "COULDN'T REDUCE TO " << speedMultiplier*0.5f;
+    }
+    unlock();
+    return speedMultiplier;
+}
+
+float ofxOMXPlayerEngine::increaseSpeed()
 {
     
     lock();
-    doSeek = true;
     
-    if(speedMultiplier+1 <=4)
+    if(speedMultiplier*2 <=4)
     {
-        speedMultiplier++;
+        speedMultiplier*=2;
         int newSpeed = normalPlaySpeed*speedMultiplier;
         
         omxClock->setSpeed(newSpeed);
@@ -512,6 +554,7 @@ int ofxOMXPlayerEngine::increaseSpeed()
 
 void ofxOMXPlayerEngine::rewind()
 {
+    lock();
     if(speedMultiplier-1 == 0)
     {
         speedMultiplier = -1;
@@ -530,6 +573,7 @@ void ofxOMXPlayerEngine::rewind()
     
     omxClock->setSpeed(newSpeed);
     omxReader.setSpeed(newSpeed);
+    unlock();
     
 }
 
@@ -553,7 +597,6 @@ void ofxOMXPlayerEngine::scrubForward(int step)
         omxClock->step(1);
         setPaused(false);
     }
-    //enableAdjustments();
 }
 
 void ofxOMXPlayerEngine::stepFrameForward()

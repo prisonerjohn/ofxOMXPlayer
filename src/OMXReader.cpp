@@ -1054,20 +1054,21 @@ void OMXReader::updateCurrentPTS()
     }
 }
 
-void OMXReader::setSpeed(int iSpeed)
+void OMXReader::setSpeed(int speed_)
 {
     if(!avFormatContext)
         return;
     
-    if(speed != DVD_PLAYSPEED_PAUSE && iSpeed == DVD_PLAYSPEED_PAUSE)
+    if(speed != DVD_PLAYSPEED_PAUSE && speed_ == DVD_PLAYSPEED_PAUSE)
     {
         av_read_pause(avFormatContext);
     }
-    else if(speed == DVD_PLAYSPEED_PAUSE && iSpeed != DVD_PLAYSPEED_PAUSE)
+    else if(speed == DVD_PLAYSPEED_PAUSE && speed_ != DVD_PLAYSPEED_PAUSE)
     {
         av_read_play(avFormatContext);
     }
-    speed = iSpeed;
+    ofLogVerbose(__func__) << "speed: " << speed << " speed_" << speed_;
+    speed = speed_;
     
     AVDiscard discard = AVDISCARD_NONE;
     if(speed > 4*DVD_PLAYSPEED_NORMAL)

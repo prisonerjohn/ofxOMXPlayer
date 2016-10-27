@@ -47,7 +47,9 @@ public:
     void        stepFrame(int);
     void        scrubForward(int step=1);
     void        increaseSpeed();
-    int         getSpeedMultiplier();
+    void        decreaseSpeed();
+
+    float       getSpeedMultiplier();
     void        setNormalSpeed();
     void        rewind();
     void        restartMovie();
@@ -124,7 +126,7 @@ private:
     bool            textureEnabled;
     
     bool            isOpen;
-    int             speedMultiplier;
+    float           speedMultiplier;
     
     
     void updateCurrentFrame();

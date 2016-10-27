@@ -457,7 +457,7 @@ void ofxOMXPlayer::scrubForward(int step)//default 1
     }
 }
 
-int ofxOMXPlayer::getSpeedMultiplier()
+float ofxOMXPlayer::getSpeedMultiplier()
 {
     if(engine)
     {
@@ -473,6 +473,16 @@ void ofxOMXPlayer::increaseSpeed()
         speedMultiplier = engine->increaseSpeed();
     }
 }
+
+void ofxOMXPlayer::decreaseSpeed()
+{
+    if(engine)
+    {
+        speedMultiplier = engine->decreaseSpeed();
+    }
+}
+
+
 
 void ofxOMXPlayer::setNormalSpeed()
 {

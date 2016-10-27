@@ -120,7 +120,7 @@ public:
     };
     void freePacket(OMXPacket *pkt, string caller="UNDEFINED");
     
-    void setSpeed(int iSpeed);
+    void setSpeed(int speed_);
     int getSpeed()
     {
         return speed;

@@ -38,7 +38,7 @@ public:
     bool setMediaTime(double pts);
     bool pause();
     bool resume();
-    bool setSpeed(int speed, bool doResume = false);
+    bool setSpeed(int speed_, bool doResume = false);
     int  getSpeed()
     {
         return currentSpeed;

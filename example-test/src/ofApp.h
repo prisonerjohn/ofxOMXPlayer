@@ -117,6 +117,7 @@ public:
         info << "PRESS 6 for SEEK TO FRAME TEST" << endl;
         info << "PRESS 7 for VOLUME TEST" << endl;
         info << "PRESS 8 for INCREASE SPEED TEST" << endl;
+        info << "PRESS 9 for DECREASE SPEED TEST" << endl;
 
         ofDrawBitmapStringHighlight(info.str(), 600, 60, ofColor(ofColor::black, 90), ofColor::yellow);
 
@@ -180,9 +181,14 @@ public:
             }
             case '8':
             {
-                playbackTestRunner.startSpeedTest(currentTest);
+                playbackTestRunner.startIncreaseSpeedTest(currentTest);
                 break;
-            }    
+            } 
+            case '9':
+            {
+                playbackTestRunner.startDecreaseSpeedTest(currentTest);
+                break;
+            } 
             case 'n':
             {
                 doDeleteCurrent = true;
