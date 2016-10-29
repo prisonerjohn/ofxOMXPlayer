@@ -555,19 +555,19 @@ float ofxOMXPlayerEngine::increaseSpeed()
 void ofxOMXPlayerEngine::rewind()
 {
     lock();
-    if(speedMultiplier-1 == 0)
+    if(speedMultiplier-1.0 == 0)
     {
-        speedMultiplier = -1;
+        speedMultiplier = -1.0;
     }
     else
     {
-        speedMultiplier--;
+        speedMultiplier-=1.0;
     }
     
     
-    if(speedMultiplier<-8)
+    if(speedMultiplier < -8.0)
     {
-        speedMultiplier = 1;
+        speedMultiplier = 1.0;
     }
     int newSpeed = normalPlaySpeed*speedMultiplier;
     
@@ -719,10 +719,7 @@ double ofxOMXPlayerEngine::getMediaTime()
 {
     double result = 0;
     lock();
-    START();
     result =  omxClock->getMediaTime();
-    END();
-    P(2);
     unlock();
     return result;
 }
@@ -812,12 +809,11 @@ void ofxOMXPlayerEngine::onVideoEnd()
 
 #pragma mark shutdown
 
-ofxOMXPlayerEngine::~ofxOMXPlayerEngine()
+void ofxOMXPlayerEngine::close()
 {
-    //ofLogVerbose(__func__) << "omxReader.remainingPackets: " << omxReader.remainingPackets;
-
     if(isThreadRunning())
     {
+        ofLogVerbose(__func__) << "stopping thread";
         stopThread();
     }
     bPlaying = false;
@@ -828,25 +824,30 @@ ofxOMXPlayerEngine::~ofxOMXPlayerEngine()
         listener = NULL;
     }
     
+    
     if (texturedPlayer)
     {
+        texturedPlayer->close();
         delete texturedPlayer;
         texturedPlayer = NULL;
     }
     if (directPlayer)
     {
+        directPlayer->close();
         delete directPlayer;
         directPlayer = NULL;
+    }
+    
+    if (audioPlayer)
+    {
+        audioPlayer->close();
+        delete audioPlayer;
+        audioPlayer = NULL;
     }
     
     videoPlayer = NULL;
     
     
-    if (audioPlayer)
-    {
-        delete audioPlayer;
-        audioPlayer = NULL;
-    }
     
     if(packet)
     {
@@ -858,7 +859,6 @@ ofxOMXPlayerEngine::~ofxOMXPlayerEngine()
     
     delete omxClock;
     omxClock = NULL;
-    
 }
 
 

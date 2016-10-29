@@ -17,11 +17,11 @@ class OMXThread
 	public:
 		OMXThread();
 		virtual ~OMXThread();
-		bool Create();
-		virtual void process() = 0;
+		bool startThread();
+		virtual void threadedFunction() = 0;
 		bool Running();
 		pthread_t ThreadHandle();
-		bool StopThread(std::string className = "UNDEFINED");
+		bool stopThread(std::string className = "UNDEFINED");
 		void lock();
 		void unlock();
 };

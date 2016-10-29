@@ -37,9 +37,15 @@ public:
     bool doDecreaseSpeedTest;
     int decreaseSpeedTestFrameNum;
 
+    vector<string> filterNames;
+    bool doFilterTest;
+    int currentFilterIndex;
+    int filterTestFrameNum;
     PlaybackTestRunner()
     {
         stopAll();
+        filterNames = OMX_Maps::getInstance().getImageFilterNames();
+
     }
     
     
@@ -66,7 +72,22 @@ public:
         
         doDecreaseSpeedTest = false;
         decreaseSpeedTestFrameNum = false;
+        
+        doFilterTest = false;
+        currentFilterIndex = 0;
+        filterTestFrameNum = 0;
     }
+    
+    
+    
+    void startFilterTest(BaseTest* test_)
+    {
+        stopAll();
+        test = test_;
+        doFilterTest = true;
+        ofLog() << "STARTING FILTER TEST";
+    }
+    
     
     void startDecreaseSpeedTest(BaseTest* test_)
     {
@@ -316,7 +337,36 @@ public:
                 }
             }
             
-            
+            if(doFilterTest)
+            {
+                string filterName;
+                
+                if(!filterTestFrameNum)
+                {
+                    filterTestFrameNum = ofGetFrameNum();
+                    filterName = filterNames[currentFilterIndex];
+                    ofLogVerbose(__func__) << "filterName: " << filterName;
+                    test->omxPlayer->applyFilter(OMX_Maps::getInstance().getImageFilter(filterName));
+                }else
+                {
+                    if(ofGetFrameNum()-filterTestFrameNum == 300)
+                    {
+                        if(currentFilterIndex+1 < filterNames.size())
+                        {
+                            currentFilterIndex++;
+                            filterName = filterNames[currentFilterIndex];
+                            ofLogVerbose(__func__) << "filterName: " << filterName;
+                            test->omxPlayer->applyFilter(OMX_Maps::getInstance().getImageFilter(filterName));
+                            filterTestFrameNum = ofGetFrameNum();
+                        }else
+                        {
+                            currentFilterIndex = 0;
+                            filterTestFrameNum = 0;
+                            doFilterTest = false;
+                        }
+                    }
+                }
+            }
             
             if(doVolumeTest)
             {

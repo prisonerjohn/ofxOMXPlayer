@@ -3,16 +3,18 @@
 #pragma mark Tunnel
 
 
-#if OMX_LOG_LEVEL >= OMX_LOG_LEVEL_ERROR_ONLY
+//#if OMX_LOG_LEVEL >= OMX_LOG_LEVEL_ERROR_ONLY
 #define TUNNEL_LOG(x)  ofLogVerbose(__func__) << ofToString(x);
 
-#else
-#undef DEBUG_TUNNELS
-#define TUNNEL_LOG(x) 
-#endif
+//#else
+//#undef DEBUG_TUNNELS
+//#define TUNNEL_LOG(x) 
+//#endif
 
 
 //#define DEBUG_TUNNELS
+#define T_LOCK lock(__func__)
+#define T_UNLOCK unlock(__func__)
 
 Tunnel::Tunnel()
 {
@@ -24,7 +26,8 @@ Tunnel::Tunnel()
     destinationPort            = 0;
     havePortSettingsChanged = false;
     isEstablished = false;
-    
+    isLocked = false;
+
     pthread_mutex_init(&m_lock, NULL);
 }
 
@@ -38,14 +41,27 @@ Tunnel::~Tunnel()
     pthread_mutex_destroy(&m_lock);
 }
 
-void Tunnel::lock()
+void Tunnel::lock(string caller)
 {
+    //ofLogVerbose(__func__) << "sourceComponentName: " << sourceComponentName << "TO " << " destinationComponentName: " << destinationComponentName << " caller: " << caller << " isLocked: " << isLocked;
+    
+    if(isLocked)
+    {
+        ofLogError(__func__) << "source: " << sourceComponentName << " TO " << " dest: " << destinationComponentName << " HAS DEADLOCK FROM " << caller;
+    }
+    
+    
     pthread_mutex_lock(&m_lock);
+    isLocked = true;
+
 }
 
-void Tunnel::unlock()
+void Tunnel::unlock(string caller)
 {
+   // ofLogVerbose(__func__) << "sourceComponentName: " << sourceComponentName << "TO " << " destinationComponentName: " << destinationComponentName << " caller: " << caller << " isLocked: " << isLocked;
     pthread_mutex_unlock(&m_lock);
+    isLocked = false;
+
 }
 
 void Tunnel::init(Component *src_component, unsigned int src_port, Component *destination, unsigned int dst_port)
@@ -67,30 +83,47 @@ OMX_ERRORTYPE Tunnel::flush()
         return OMX_ErrorUndefined;
     }
     
-    lock();
+    T_LOCK;
     
     sourceComponent->flushAll();
     destinationComponent->flushAll();
     
-    unlock();
+    T_UNLOCK;
     return OMX_ErrorNone;
 }
 
 
-OMX_ERRORTYPE Tunnel::Deestablish()
-{
-    TUNNEL_LOG(ofToString(sourceComponent->name + " : " + destinationComponent->name));
+OMX_ERRORTYPE Tunnel::Deestablish(bool doTunnelSrcToNULL, bool doTunnelDestToNULL)
+{/*
+    if(OMX_Maps::getInstance().filtersEnabled)
+    {
+        ofLogVerbose(__func__) << "BAILING EARLY";
+        isEstablished = false;
+        return OMX_ErrorNone;
+
+    }*/
+    ofLogVerbose(__func__) << sourceComponentName << " TO " << destinationComponentName;
+    //TUNNEL_LOG(ofToString(sourceComponent->name + " : " + destinationComponent->name));
     if (!isEstablished)
     {
+        ofLogError(__func__) << "RETURING EARLY as isEstablished: " << isEstablished;
         return OMX_ErrorNone;
     }
-    
-    if(!sourceComponent || !destinationComponent)
+    if(!sourceComponent)
     {
+        ofLogError(__func__) << "NO SOURCE EXISTS: " << sourceComponentName;
+        
         return OMX_ErrorUndefined;
     }
+    if(!destinationComponent)
+    {
+        ofLogError(__func__) << "NO DEST EXISTS: " << destinationComponentName;
+        
+        return OMX_ErrorUndefined;
+    }
+
     
-    lock();
+    T_LOCK;
     OMX_ERRORTYPE error = OMX_ErrorNone;
     if(havePortSettingsChanged)
     {
@@ -98,25 +131,34 @@ OMX_ERRORTYPE Tunnel::Deestablish()
         OMX_TRACE(error);
     }
 
+    if(doTunnelSrcToNULL)
+    {
+        bool sourceToNull = sourceComponent->tunnelToNull(sourcePort);
+        ofLogVerbose(__func__) << sourceComponentName << " sourceToNull: " << sourceToNull;
+       
+    }
+    if(doTunnelDestToNULL)
+    {
+        bool destToNull = destinationComponent->tunnelToNull(destinationPort);
+        ofLogVerbose(__func__) << destinationComponentName << " destToNull: " << destToNull;
+
+    }
     
-    bool didTearDownTunnel = sourceComponent->tunnelToNull(sourcePort);
-    didTearDownTunnel = destinationComponent->tunnelToNull(destinationPort);
-    
-    unlock();
+    T_UNLOCK;
     isEstablished = false;
     return error;
 }
 
 OMX_ERRORTYPE Tunnel::Establish(bool portSettingsChanged)
 {
-    lock();
+    T_LOCK;
     
     OMX_ERRORTYPE error = OMX_ErrorNone;
     OMX_PARAM_U32TYPE param;
     OMX_INIT_STRUCTURE(param);
     if(!sourceComponent || !destinationComponent || !sourceComponent->handle || !destinationComponent->handle)
     {
-        unlock();
+        T_UNLOCK;
         return OMX_ErrorUndefined;
     }
     
@@ -124,7 +166,7 @@ OMX_ERRORTYPE Tunnel::Establish(bool portSettingsChanged)
     OMX_TRACE(error);
     if(error != OMX_ErrorNone)
     {
-        unlock();
+        T_UNLOCK;
         return error;
     }
 #ifdef DEBUG_TUNNELS
@@ -137,7 +179,7 @@ OMX_ERRORTYPE Tunnel::Establish(bool portSettingsChanged)
         OMX_TRACE(error);
         if(error != OMX_ErrorNone)
         {
-            unlock();
+            T_UNLOCK;
             return error;
         }
     }
@@ -153,7 +195,7 @@ OMX_ERRORTYPE Tunnel::Establish(bool portSettingsChanged)
     OMX_TRACE(error);
     if(error != OMX_ErrorNone)
     {
-        unlock();
+        T_UNLOCK;
         return error;
     }
     else
@@ -165,7 +207,7 @@ OMX_ERRORTYPE Tunnel::Establish(bool portSettingsChanged)
     OMX_TRACE(error);
     if(error != OMX_ErrorNone)
     {
-        unlock();
+        T_UNLOCK;
         return error;
     }
     
@@ -173,7 +215,7 @@ OMX_ERRORTYPE Tunnel::Establish(bool portSettingsChanged)
     OMX_TRACE(error);
     if(error != OMX_ErrorNone)
     {
-        unlock();
+        T_UNLOCK;
         return error;
     }
     
@@ -184,14 +226,14 @@ OMX_ERRORTYPE Tunnel::Establish(bool portSettingsChanged)
         OMX_TRACE(error);
         if(error != OMX_ErrorNone)
         {
-            unlock();
+            T_UNLOCK;
             return error;
         }
         error = destinationComponent->setState(OMX_StateIdle);
         OMX_TRACE(error);
         if(error != OMX_ErrorNone)
         {
-            unlock();
+            T_UNLOCK;
             return error;
         }
     }
@@ -199,13 +241,13 @@ OMX_ERRORTYPE Tunnel::Establish(bool portSettingsChanged)
     error = sourceComponent->waitForCommand(OMX_CommandPortEnable, sourcePort);
     if(error != OMX_ErrorNone)
     {
-        unlock();
+        T_UNLOCK;
         return error;
     }
     
     havePortSettingsChanged = portSettingsChanged;
     
-    unlock();
+    T_UNLOCK;
     
     
     return error;

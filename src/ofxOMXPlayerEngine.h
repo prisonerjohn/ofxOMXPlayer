@@ -18,11 +18,10 @@ extern "C"
 #include "OMXAudioPlayer.h"
 
 
-class ofxOMXPlayerEngine: public ofThread
+class ofxOMXPlayerEngine: public OMXThread
 {
 public:
     ofxOMXPlayerEngine();
-    ~ofxOMXPlayerEngine();
     
     bool setup(ofxOMXPlayerSettings& settings);
     
@@ -106,7 +105,7 @@ public:
     void updateCurrentFrame();
     void updateFromMediaClock();
     int frameCounter;
-    
+    void close();
 private:
     
     OMXPacket* packet;

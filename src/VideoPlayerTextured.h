@@ -10,7 +10,6 @@ class VideoPlayerTextured : public BaseVideoPlayer
 {
 public:
     VideoPlayerTextured();
-    ~VideoPlayerTextured();
     
     bool open(StreamInfo, OMXClock*, OMXReader* omxReader_, ofxOMXPlayerSettings&, EGLImageKHR);
     bool openDecoder();

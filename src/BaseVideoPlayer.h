@@ -14,11 +14,10 @@
 #define MAX_DATA_SIZE 10 * 1024 * 1024
 
 
-class BaseVideoPlayer: public OMXThread
+class BaseVideoPlayer: public ofThread
 {
 public:
     BaseVideoPlayer();
-    virtual ~BaseVideoPlayer();
     BaseVideoDecoder* decoder;
     std::deque<OMXPacket *> packets;
     
@@ -26,10 +25,6 @@ public:
     StreamInfo omxStreamInfo;
     double currentPTS;
     
-    pthread_cond_t m_packet_cond;
-    //pthread_cond_t m_picture_cond;
-    pthread_mutex_t m_lock;
-    pthread_mutex_t m_lock_decoder; 
     
     float fps;
     bool doAbort;
@@ -43,13 +38,11 @@ public:
     
     void applyFilter(OMX_IMAGEFILTERTYPE filter);
     bool decode(OMXPacket *pkt);
-    void process();
+    void threadedFunction();
     void flush();
     
     bool addPacket(OMXPacket*);
     
-
-    bool closeDecoder();
     double getCurrentPTS();
     double getFPS();
     
@@ -57,13 +50,13 @@ public:
     
     void submitEOS();
     bool EOS();
-    
+    /*
     void lock();
     void unlock();
     void lockDecoder();
     void unlockDecoder();
-    
-    
+    bool isDecoderLocked;
+    */
     uint32_t validHistoryPTS;
     
     virtual bool openDecoder() =0;

@@ -13,10 +13,6 @@ VideoPlayerTextured::VideoPlayerTextured()
 	textureDecoder = NULL;
 }
 
-VideoPlayerTextured::~VideoPlayerTextured()
-{
-    close();
-}
 
 bool VideoPlayerTextured::open(StreamInfo hints, OMXClock* omxClock_, OMXReader* omxReader_, ofxOMXPlayerSettings& settings_, EGLImageKHR eglImage_)
 {
@@ -24,13 +20,6 @@ bool VideoPlayerTextured::open(StreamInfo hints, OMXClock* omxClock_, OMXReader*
 	eglImage = eglImage_;
     settings = settings_;
     
-
-	if(ThreadHandle())
-	{
-		close();
-	}
-
-
 	omxStreamInfo       = hints;
     omxClock = omxClock_;
 	clockComponent    = omxClock->getComponent();
@@ -50,7 +39,7 @@ bool VideoPlayerTextured::open(StreamInfo hints, OMXClock* omxClock_, OMXReader*
 		return false;
 	}
 
-	Create();
+	startThread();
 
 
 	isOpen        = true;
@@ -93,26 +82,22 @@ bool VideoPlayerTextured::openDecoder()
 
 void VideoPlayerTextured::close()
 {
-	doAbort  = true;
-	doFlush   = true;
-	
-	flush();
-	
-	if(ThreadHandle())
-	{
-		lock();
-            pthread_cond_broadcast(&m_packet_cond);
-		unlock();
+    if(isThreadRunning())
+    {
+        stopThread();
+    }
+    //flush();
+    if (textureDecoder)
+    {
+        textureDecoder->close();
+        delete textureDecoder;
+        textureDecoder = NULL;
+    };
+    decoder = NULL;
 
-		StopThread("VideoPlayerTextured");
-	}
 
-	if (textureDecoder)
-	{
-		delete textureDecoder;
-		textureDecoder = NULL;
-	};
-
+   
+    
 	isOpen      = false;
 	currentPTS  = DVD_NOPTS_VALUE;
 	speed       = DVD_PLAYSPEED_NORMAL;

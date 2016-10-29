@@ -110,7 +110,6 @@ public:
               bool boostOnDownmix);
     
     
-    bool deinit();
     unsigned int addPackets(void* data, unsigned int len);
     unsigned int addPackets(void* data, unsigned int len, double dts, double pts);
     unsigned int GetSpace();
@@ -171,13 +170,13 @@ private:
     WAVEFORMATEXTENSIBLE        waveFormat;
     
 protected:
-    Component renderComponent;
-    Component mixerComponent;
-    Component decoderComponent;
+    Component* renderComponent;
+    Component* mixerComponent;
+    Component* decoderComponent;
     Component*    clockComponent;
     
-    Tunnel     clockTunnel;
-    Tunnel     mixerTunnel;
-    Tunnel     decoderTunnel;
+    Tunnel*     clockTunnel;
+    Tunnel*     mixerTunnel;
+    Tunnel*     decoderTunnel;
     CPCMRemap remapObject;
 };

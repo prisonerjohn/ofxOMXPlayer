@@ -16,6 +16,8 @@
 class OMX_Maps
 {
 public:
+    
+    bool filtersEnabled;
     static OMX_Maps& getInstance()
     {
         static OMX_Maps    instance;
@@ -274,6 +276,7 @@ private:
     OMX_Maps()
     {
         
+        filtersEnabled = false;
         commands["OMX_CommandVendorStartUnused"]= OMX_CommandVendorStartUnused;
         commands["OMX_CommandMax"]= OMX_CommandMax;
         commands["OMX_CommandStateSet"]= OMX_CommandStateSet;
@@ -329,8 +332,8 @@ private:
         imageFilters["OilPaint"] = OMX_ImageFilterOilPaint;
         imageFilters["Hatch"] = OMX_ImageFilterHatch;
         imageFilters["Gpen"] = OMX_ImageFilterGpen;
-        imageFilters["Antialias"] = OMX_ImageFilterAntialias;
-        imageFilters["DeRing"] = OMX_ImageFilterDeRing;
+        //imageFilters["Antialias"] = OMX_ImageFilterAntialias;
+        //imageFilters["DeRing"] = OMX_ImageFilterDeRing;
         imageFilters["Solarize"] = OMX_ImageFilterSolarize;
         imageFilters["Watercolor"] = OMX_ImageFilterWatercolor;
         imageFilters["Pastel"] = OMX_ImageFilterPastel;

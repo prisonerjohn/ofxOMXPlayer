@@ -8,7 +8,6 @@ class VideoDecoderTextured : public BaseVideoDecoder, public ComponentListener
 {
 public:
     VideoDecoderTextured();
-    ~VideoDecoderTextured(){};
     
     bool open(StreamInfo, OMXClock* omxClock_, ofxOMXPlayerSettings&, EGLImageKHR);
 

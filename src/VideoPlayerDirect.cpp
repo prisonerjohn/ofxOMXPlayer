@@ -29,18 +29,9 @@ VideoPlayerDirect::VideoPlayerDirect()
 	directDecoder = NULL;
 }
 
-VideoPlayerDirect::~VideoPlayerDirect()
-{
-    close();
-}
 
 bool VideoPlayerDirect::open(StreamInfo hints, OMXClock* omxClock_, OMXReader* omxReader_, ofxOMXPlayerSettings& settings_)
 {
-
-	if(ThreadHandle())
-	{
-		close();
-	}
     
     
     settings = settings_;
@@ -48,7 +39,6 @@ bool VideoPlayerDirect::open(StreamInfo hints, OMXClock* omxClock_, OMXReader* o
 	omxStreamInfo   = hints;
 	fps             = 25.0f;
 	currentPTS      = DVD_NOPTS_VALUE;
-	doAbort         = false;
 	doFlush         = false;
 	cachedSize      = 0;
 	speed           = DVD_PLAYSPEED_NORMAL;
@@ -63,7 +53,7 @@ bool VideoPlayerDirect::open(StreamInfo hints, OMXClock* omxClock_, OMXReader* o
 		return false;
 	}
 
-	Create();
+	startThread();
 
 	isOpen        = true;
 
@@ -80,7 +70,7 @@ bool VideoPlayerDirect::openDecoder()
 	decoder = (BaseVideoDecoder*)directDecoder;
 	if(!directDecoder->open(omxStreamInfo, omxClock, settings))
 	{
-
+        directDecoder->close();
         delete directDecoder;
         directDecoder = NULL;
         decoder = NULL;
@@ -99,22 +89,18 @@ bool VideoPlayerDirect::openDecoder()
 
 void VideoPlayerDirect::close()
 {
-	doAbort = true;
 	doFlush = true;
 
-	flush();
+	//flush();
 
-	if(ThreadHandle())
+	if(isThreadRunning())
 	{
-		lock();
-		pthread_cond_broadcast(&m_packet_cond);
-		unlock();
-
-		StopThread("VideoPlayerDirect");
+        stopThread();
 	}
 	
 	if (directDecoder)
 	{
+        directDecoder->close();
 		delete directDecoder;
 		directDecoder = NULL;
 	}

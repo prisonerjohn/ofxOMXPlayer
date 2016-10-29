@@ -104,6 +104,7 @@ public:
     string name;
     unsigned int inputPort;
     unsigned int outputPort;
+    bool isLocked;
 private:
 
 
@@ -129,14 +130,13 @@ private:
     std::vector<OMX_BUFFERHEADERTYPE*> outputBuffers;
     sem_t         m_omx_fill_buffer_done;
     
-    bool            doExit;
     pthread_cond_t  m_input_buffer_cond;
     pthread_cond_t  m_output_buffer_cond;
     pthread_cond_t  m_omx_event_cond;
     bool            m_eos;
     bool            doFlushInput;
     bool            doFlushOutput;
-    void            lock();
-    void            unlock();
+    void            lock(string called="UNDEFINED");
+    void            unlock(string called="UNDEFINED");
     
 };

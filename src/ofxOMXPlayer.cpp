@@ -33,7 +33,6 @@ ofxOMXPlayer::ofxOMXPlayer()
     doRestart = false;
     doToggle = false;
     speedMultiplier = 1;
-    decoderHandle = NULL;
     frameCounter = 0;
     ofAddListener(ofEvents().update, this, &ofxOMXPlayer::onUpdate);
     
@@ -228,11 +227,6 @@ bool ofxOMXPlayer::openEngine(int startTimeInSeconds) //default 0
         cropRectangle = &directDisplay->options.cropRectangle;
         drawRectangle = &directDisplay->options.drawRectangle;
         
-    }
-    if(settings.enableFilters)
-    {
-        
-        decoderHandle = engine->videoPlayer->decoder->decoderComponent.handle;
     }
     isOpen = setupPassed;
     return setupPassed;
@@ -877,11 +871,7 @@ void ofxOMXPlayer::close()
 {
     ofLogVerbose(__func__)  << "";
     //ofLogVerbose(__func__) << " isOpen: " << isOpen;
-    if (!isOpen)
-    {
-        return;
-    }
-    
+    /*
     if(engine)
     {
         if(engine->directPlayer && engine->directPlayer->directDecoder)
@@ -889,7 +879,7 @@ void ofxOMXPlayer::close()
             engine->directPlayer->directDecoder->display.isReady = false;
         }
     }
-    
+    */
     ofRemoveListener(ofEvents().update, this, &ofxOMXPlayer::onUpdateDuringExit);
     
     
@@ -903,9 +893,10 @@ void ofxOMXPlayer::close()
             ofLogVerbose(__func__) << " RESTORED SIGNAL";
         }
     }
-    
     if(engine)
     {
+        //engine->setPaused(true);
+        engine->close();
         delete engine;
         engine = NULL;
     }
@@ -944,12 +935,14 @@ void ofxOMXPlayer::onUpdateDuringExit(ofEventArgs& args)
         
         close();
         ofxOMXPlayer::doExit = false;
+        /*
         if(decoderHandle)
         {
             OMX_ERRORTYPE error = OMX_FreeHandle(decoderHandle);
             OMX_TRACE(error);
             decoderHandle = NULL;
         }
+         */
         OMXInitializer::getInstance().deinit();
         ofExit();
     }

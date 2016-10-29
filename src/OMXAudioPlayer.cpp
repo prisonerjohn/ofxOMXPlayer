@@ -49,11 +49,6 @@ OMXAudioPlayer::OMXAudioPlayer()
 
 OMXAudioPlayer::~OMXAudioPlayer()
 {
-    if(isOpen)
-    {
-        close();
-    }
-
 
     pthread_cond_destroy(&m_audio_cond);
     pthread_cond_destroy(&m_packet_cond);

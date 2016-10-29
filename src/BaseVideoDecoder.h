@@ -20,24 +20,23 @@ class BaseVideoDecoder
 {
 public:
     BaseVideoDecoder();
-    virtual ~BaseVideoDecoder();
     OMX_VIDEO_CODINGTYPE omxCodingType;
     
     FilterManager filterManager;
     bool doFilters;
    
-    Component decoderComponent;
-    Component renderComponent;
-    Component schedulerComponent;
-    Component imageFXComponent;
+    Component* decoderComponent;
+    Component* renderComponent;
+    Component* schedulerComponent;
+    Component* imageFXComponent;
     
     OMXClock* omxClock;
     Component* clockComponent;
 
-    Tunnel clockTunnel;
-    Tunnel schedulerTunnel;
-    Tunnel decoderTunnel;
-    Tunnel imageFXTunnel;
+    Tunnel* clockTunnel;
+    Tunnel* schedulerTunnel;
+    Tunnel* decoderTunnel;
+    Tunnel* imageFXTunnel;
     
     bool isOpen;
     
@@ -70,7 +69,6 @@ public:
     
     unsigned int getFreeSpace();
     unsigned int getSize();
-    void Reset();
     
     void processCodec(StreamInfo& hints);
     static unsigned count_bits(int32_t value)
@@ -88,6 +86,6 @@ public:
     StreamInfo streamInfo;
     CriticalSection  m_critSection;
     int EndOfFrameCounter;
-    
+    void close();
 };
 

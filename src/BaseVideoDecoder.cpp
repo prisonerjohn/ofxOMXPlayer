@@ -19,11 +19,23 @@ BaseVideoDecoder::BaseVideoDecoder()
 	extraData       = NULL;
 	extraSize       = 0;
 	isFirstFrame    = true;
-	omxClock  = NULL;
-    clockComponent = NULL;
     doFilters       = false; 
     omxCodingType   = OMX_VIDEO_CodingUnused;
     EndOfFrameCounter = 0;
+    
+    
+    decoderComponent= NULL;
+    renderComponent= NULL;
+    schedulerComponent= NULL;
+    imageFXComponent= NULL;
+    
+    omxClock= NULL;
+    clockComponent= NULL;
+    
+    clockTunnel= NULL;
+    schedulerTunnel= NULL;
+    decoderTunnel= NULL;
+    imageFXTunnel= NULL;
 
 }
 #define NUMBER_TO_STRING(x) #x
@@ -33,55 +45,55 @@ BaseVideoDecoder::BaseVideoDecoder()
 #define FUNCTION_LINE ofToString(__func__)+ofToString(LINE_STRING)
 
 
-
-BaseVideoDecoder::~BaseVideoDecoder() 
+void BaseVideoDecoder::close()
 {
-/*
-
-                               ->clock 
-    decoder->imageFX->scheduler
-                               ->renderer
-*/   
-    SingleLock lock (m_critSection);
+    //SingleLock lock (m_critSection);
     OMX_ERRORTYPE error = OMX_ErrorNone; 
-    
-    //scheduler->clock 
-    error = clockTunnel.Deestablish();
-    OMX_TRACE(error);
-    
-    //scheduler->renderer
-    error = schedulerTunnel.Deestablish();
-    OMX_TRACE(error);
-    
-    ofLogVerbose() << "doFilters: " << doFilters;
-    if(doFilters)
+    if(decoderTunnel)
     {
-        //imagefx->scheduler
-        //error = imageFXTunnel.Deestablish(); 
-        //OMX_TRACE(error);
+        delete decoderTunnel;
+        decoderTunnel = NULL;
+    }
+    if(imageFXTunnel)
+    {
+        delete imageFXTunnel;
+        imageFXTunnel = NULL;
     }
     
-    
-    
-    //decoder->scheduler or decoder->imagefx(dofilters) 
-    error = decoderTunnel.Deestablish();
-    OMX_TRACE(error);
-    
-    
-    
-    if (doFilters)
+    if(clockTunnel)
     {
-        OMX_PARAM_U32TYPE extra_buffers;
-        OMX_INIT_STRUCTURE(extra_buffers);
-        extra_buffers.nU32 = -2;
-        
-        error = decoderComponent.setParameter(OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
-        OMX_TRACE(error);
+        delete clockTunnel;
+        clockTunnel = NULL;
     }
     
-    
-  
+    if(schedulerTunnel)
+    {
+        delete schedulerTunnel;
+        schedulerTunnel = NULL;
+    }
 
+    if(decoderComponent)
+    {
+        decoderComponent->freeInputBuffers();
+        delete decoderComponent;
+        decoderComponent = NULL;
+    }
+    if(renderComponent)
+    {
+        renderComponent->freeInputBuffers();
+        delete renderComponent;
+        renderComponent = NULL;
+    }
+    if(schedulerComponent)
+    {
+        delete schedulerComponent;
+        schedulerComponent = NULL;
+    }
+    if(imageFXComponent)
+    {
+        delete imageFXComponent;
+        imageFXComponent = NULL;
+    }
     
     if(extraData)
     {
@@ -91,8 +103,8 @@ BaseVideoDecoder::~BaseVideoDecoder()
     extraData       = NULL;
     omxClock  = NULL;
     isOpen          = false;
-
 }
+
 
 
 bool BaseVideoDecoder::NaluFormatStartCodes(enum AVCodecID codec, uint8_t *in_extradata, int in_extrasize)
@@ -127,7 +139,7 @@ bool BaseVideoDecoder::sendDecoderConfig()
 	if(extraSize > 0 && extraData != NULL)
 	{
 
-		OMX_BUFFERHEADERTYPE *omxBuffer = decoderComponent.getInputBuffer();
+		OMX_BUFFERHEADERTYPE *omxBuffer = decoderComponent->getInputBuffer();
 
 		if(omxBuffer == NULL)
 		{
@@ -147,7 +159,7 @@ bool BaseVideoDecoder::sendDecoderConfig()
 		memcpy((unsigned char *)omxBuffer->pBuffer, extraData, omxBuffer->nFilledLen);
 		omxBuffer->nFlags = OMX_BUFFERFLAG_CODECCONFIG | OMX_BUFFERFLAG_ENDOFFRAME;
 
-		error = decoderComponent.EmptyThisBuffer(omxBuffer);
+		error = decoderComponent->EmptyThisBuffer(omxBuffer);
         OMX_TRACE(error);
 		if (error != OMX_ErrorNone)
 		{
@@ -179,7 +191,7 @@ bool BaseVideoDecoder::decode(OMXPacket* omxPacket)
         while(demuxer_bytes)
         {
             // 500ms timeout
-            OMX_BUFFERHEADERTYPE *omxBuffer = decoderComponent.getInputBuffer(500);
+            OMX_BUFFERHEADERTYPE *omxBuffer = decoderComponent->getInputBuffer(500);
             if(omxBuffer == NULL)
             {
                 ofLogNotice(__func__) << "Decode timeout";
@@ -220,7 +232,7 @@ bool BaseVideoDecoder::decode(OMXPacket* omxPacket)
             int nRetry = 0;
             while(true)
             {
-                error = decoderComponent.EmptyThisBuffer(omxBuffer);
+                error = decoderComponent->EmptyThisBuffer(omxBuffer);
                 OMX_TRACE(error);
                 if (error == OMX_ErrorNone)
                 {
@@ -267,7 +279,7 @@ bool BaseVideoDecoder::decode(uint8_t* demuxer_content, int iSize, double pts)
         while(demuxer_bytes)
         {
             // 500ms timeout
-            OMX_BUFFERHEADERTYPE *omxBuffer = decoderComponent.getInputBuffer(500);
+            OMX_BUFFERHEADERTYPE *omxBuffer = decoderComponent->getInputBuffer(500);
             if(omxBuffer == NULL)
             {
                 ofLogError(__func__) << "Decode timeout";
@@ -307,7 +319,7 @@ bool BaseVideoDecoder::decode(uint8_t* demuxer_content, int iSize, double pts)
             int nRetry = 0;
             while(true)
             {
-                error = decoderComponent.EmptyThisBuffer(omxBuffer);
+                error = decoderComponent->EmptyThisBuffer(omxBuffer);
                 OMX_TRACE(error);
                 if (error == OMX_ErrorNone)
                 {
@@ -346,7 +358,7 @@ void BaseVideoDecoder::submitEOS()
 	}
 
 	OMX_ERRORTYPE error = OMX_ErrorNone;
-	OMX_BUFFERHEADERTYPE *omxBuffer = decoderComponent.getInputBuffer();
+	OMX_BUFFERHEADERTYPE *omxBuffer = decoderComponent->getInputBuffer();
 
 	if(omxBuffer == NULL)
 	{
@@ -360,7 +372,7 @@ void BaseVideoDecoder::submitEOS()
 
 	omxBuffer->nFlags = OMX_BUFFERFLAG_ENDOFFRAME | OMX_BUFFERFLAG_EOS | OMX_BUFFERFLAG_TIME_UNKNOWN;
 
-	error = decoderComponent.EmptyThisBuffer(omxBuffer);
+	error = decoderComponent->EmptyThisBuffer(omxBuffer);
     OMX_TRACE(error);
 
 }
@@ -374,7 +386,7 @@ bool BaseVideoDecoder::EOS()
 	}
 	else
 	{
-		if (decoderComponent.EOS())
+		if (decoderComponent->EOS())
 		{
 
 			isEndOfStream =  true;
@@ -390,7 +402,7 @@ bool BaseVideoDecoder::EOS()
 
 bool BaseVideoDecoder::pause()
 {
-	if(renderComponent.handle == NULL)
+	if(renderComponent->handle == NULL)
 	{
 		return false;
 	}
@@ -402,15 +414,15 @@ bool BaseVideoDecoder::pause()
 
 	doPause = true;
 
-	schedulerComponent.setState(OMX_StatePause);
-	renderComponent.setState(OMX_StatePause);
+	schedulerComponent->setState(OMX_StatePause);
+	renderComponent->setState(OMX_StatePause);
 
 	return true;
 }
 
 bool BaseVideoDecoder::resume()
 {
-	if(renderComponent.handle == NULL)
+	if(renderComponent->handle == NULL)
 	{
 		return false;
 	}
@@ -421,21 +433,12 @@ bool BaseVideoDecoder::resume()
 	}
 	doPause = false;
 
-	schedulerComponent.setState(OMX_StateExecuting);
-	renderComponent.setState(OMX_StateExecuting);
+	schedulerComponent->setState(OMX_StateExecuting);
+	renderComponent->setState(OMX_StateExecuting);
 
 	return true;
 }
 
-void BaseVideoDecoder::Reset()
-{
-	//ofLogVerbose(__func__) << " START";
-
-	decoderComponent.flushInput();
-	decoderTunnel.flush();
-
-	//ofLogVerbose(__func__) << " END";
-}
 
 
 void BaseVideoDecoder::processCodec(StreamInfo& hints)

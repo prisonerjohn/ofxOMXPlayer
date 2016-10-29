@@ -60,7 +60,6 @@ class OMXAudioPlayer : public OMXThread
 		void unlock();
 		void lockDecoder();
 		void unlockDecoder();
-	private:
 	public:
 		OMXAudioPlayer();
 		~OMXAudioPlayer();

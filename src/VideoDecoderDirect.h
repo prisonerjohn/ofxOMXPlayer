@@ -11,7 +11,6 @@ class VideoDecoderDirect : public BaseVideoDecoder
 public:
   
     VideoDecoderDirect();
-    ~VideoDecoderDirect();
     bool open(StreamInfo&, OMXClock* omxClock_, ofxOMXPlayerSettings&);
       
     void updateFrameCount();

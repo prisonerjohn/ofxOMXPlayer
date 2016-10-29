@@ -138,7 +138,6 @@ private:
     StreamInfo audioInfo;
     StreamInfo videoInfo;
     
-    OMX_HANDLETYPE decoderHandle;
     ofxOMXPlayerSettings    settings;
     int frameCounter;
 };

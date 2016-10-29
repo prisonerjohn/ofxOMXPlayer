@@ -17,7 +17,7 @@ OMXThread::~OMXThread()
 	pthread_attr_destroy(&m_tattr);
 }
 
-bool OMXThread::StopThread(std::string className)
+bool OMXThread::stopThread(std::string className)
 {
 	if(!m_running)
 	{
@@ -33,7 +33,7 @@ bool OMXThread::StopThread(std::string className)
 	return true;
 }
 
-bool OMXThread::Create()
+bool OMXThread::startThread()
 {
 	if(m_running)
 	{
@@ -48,7 +48,7 @@ bool OMXThread::Create()
 	return true;
 }
 
-bool OMXThread::Running()
+bool OMXThread::isThreadRunning()
 {
 	return m_running;
 }

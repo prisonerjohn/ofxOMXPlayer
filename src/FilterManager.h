@@ -11,12 +11,9 @@ class FilterManager
 public:
     
     Component* imageFXComponent;
-    OMX_CONFIG_IMAGEFILTERTYPE imagefilterConfig;
-    int numTimes;
     FilterManager()
     {
         imageFXComponent = NULL;  
-        numTimes = 0;
     }
     ~FilterManager()
     {
@@ -26,25 +23,27 @@ public:
     void setup(Component* imageFXComponent_)
     {
         imageFXComponent = imageFXComponent_;
-        OMX_INIT_STRUCTURE(imagefilterConfig);
-        imagefilterConfig.nPortIndex = imageFXComponent->outputPort;
-        
     }
     void setFilter(OMX_IMAGEFILTERTYPE imageFilter_)
     {
-        if(numTimes+1 > 40)
+        if(!imageFXComponent)
         {
-            ofLogError() << "cannot be set more than 4 times";
+            ofLogError(__func__) << "RIP";
             return;
         }
-        ofLogVerbose(__func__) << "imageFilter_: " << GetImageFilterString(imageFilter_);
-        OMX_ERRORTYPE error   = OMX_ErrorNone;
-        
-        
+        string filterName = GetImageFilterString(imageFilter_);
+        ofLogVerbose(__func__) << "filterName: " << filterName;
+
+        OMX_CONFIG_IMAGEFILTERTYPE imagefilterConfig;
+        OMX_INIT_STRUCTURE(imagefilterConfig);
+        imagefilterConfig.nPortIndex = imageFXComponent->outputPort;
         imagefilterConfig.eImageFilter = imageFilter_;
-        error = imageFXComponent->setConfig(OMX_IndexConfigCommonImageFilter, &imagefilterConfig);
+        OMX_ERRORTYPE error = OMX_SetConfig(imageFXComponent->handle, OMX_IndexConfigCommonImageFilter, &imagefilterConfig);
+        if(error == OMX_ErrorBadParameter)
+        {
+            ofLogError(__func__) << filterName << " FAILED";
+        }
         OMX_TRACE(error);
-        numTimes++;
     }
     
     /*void applyFilter()

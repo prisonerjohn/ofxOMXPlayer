@@ -24,26 +24,12 @@ BaseVideoPlayer::BaseVideoPlayer()
     omxClock = NULL;
     clockComponent = NULL;
 	decoder = NULL;
-	pthread_cond_init(&m_packet_cond, NULL);
-	pthread_mutex_init(&m_lock, NULL);
-	pthread_mutex_init(&m_lock_decoder, NULL);
 	validHistoryPTS = 0;
 }
 
-BaseVideoPlayer::~BaseVideoPlayer()
-{
-    
-    pthread_cond_destroy(&m_packet_cond);
-    pthread_mutex_destroy(&m_lock);
-    pthread_mutex_destroy(&m_lock_decoder);
-    omxClock = NULL;
-    clockComponent = NULL;
-    decoder       = NULL;
-    omxReader = NULL;
-
-}
 void BaseVideoPlayer::adjustFPS()
 {
+    lock();
     if (omxStreamInfo.fpsrate && omxStreamInfo.fpsscale)
     {
         fps = AV_TIME_BASE / OMXReader::normalizeFrameduration((double)AV_TIME_BASE * omxStreamInfo.fpsscale / omxStreamInfo.fpsrate);
@@ -59,6 +45,7 @@ void BaseVideoPlayer::adjustFPS()
         fps = 25;
     }
     omxStreamInfo.fps = fps;
+    unlock();
 }
 
 double BaseVideoPlayer::getCurrentPTS()
@@ -73,13 +60,21 @@ double BaseVideoPlayer::getFPS()
 
 unsigned int BaseVideoPlayer::getCached()
 {
-	return cachedSize;
+    unsigned int result = 0;
+    //lock();
+	result =  cachedSize;
+    //unlock();
+    return result;
+
 }
 
 
 void BaseVideoPlayer::setSpeed(int speed_)
 {
+   // lock();
 	speed = speed_;
+    //unlock();
+
 }
 
 int BaseVideoPlayer::getSpeed()
@@ -89,50 +84,36 @@ int BaseVideoPlayer::getSpeed()
 
 void BaseVideoPlayer::applyFilter(OMX_IMAGEFILTERTYPE filter)
 {
-    
-    
     //lock();
-    //lockDecoder();
-        decoder->filterManager.setFilter(filter);
-    //unlockDecoder();
-    //unlock();
+    if(!settings.enableFilters)
+    {
+        ofLogError(__func__) << "FILTERS ARE DISABLED via ofxOMXPlayerSettings";
+        return;
+    }
+
+    decoder->filterManager.setFilter(filter);
+   // unlock();
 }
 
-void BaseVideoPlayer::lock()
-{
-	pthread_mutex_lock(&m_lock);
-}
-
-void BaseVideoPlayer::unlock()
-{
-	pthread_mutex_unlock(&m_lock);
-}
-
-void BaseVideoPlayer::lockDecoder()
-{
-	pthread_mutex_lock(&m_lock_decoder);
-}
-
-void BaseVideoPlayer::unlockDecoder()
-{
-	pthread_mutex_unlock(&m_lock_decoder);
-}
 
 
 bool BaseVideoPlayer::decode(OMXPacket *omxPacket)
 {
-
-    
+    bool result = false;
     if(!omxPacket)
     {
-        return false;
+        return result;
     }
+    lock();
+
     if(omxPacket->pts != DVD_NOPTS_VALUE)
     {
         //ofLogVerbose(__func__) << "SETTING currentPTS";
         currentPTS = omxPacket->pts;
     }
-    return decoder->decode(omxPacket);
+    result = decoder->decode(omxPacket);
+    unlock();
+    return result;
 }
 
 
@@ -142,9 +123,6 @@ void BaseVideoPlayer::flush()
 {
 
 
-	lock();
-	lockDecoder();
-	doFlush = true;
 	while (!packets.empty())
 	{
 		OMXPacket *pkt = packets.front();
@@ -156,13 +134,6 @@ void BaseVideoPlayer::flush()
 	currentPTS = DVD_NOPTS_VALUE;
 	cachedSize = 0;
 
-	if(decoder)
-	{
-		decoder->Reset();
-	}
-
-	unlockDecoder();
-	unlock();
 }
 
 
@@ -176,54 +147,42 @@ bool BaseVideoPlayer::addPacket(OMXPacket *pkt)
 		return ret;
 	}
 
-	if(doStop || doAbort)
-	{
-		return ret;
-	}
 
-    
+    lock();
     int targetSize = cachedSize + pkt->size;
 	if(targetSize < MAX_DATA_SIZE)
 	{
-		lock();
+		
 			cachedSize += pkt->size;
 			packets.push_back(pkt);
-		unlock();
+		
 		ret = true;
-		pthread_cond_broadcast(&m_packet_cond);
     }else
     {
         //ofLogError(__func__) << "targetSize: " << targetSize << " MAX_DATA_SIZE: " << MAX_DATA_SIZE << " packets.size: " << packets.size() << " CACHE FULL";
     }
-
+    unlock();
 	return ret;
 }
 
 
 
 
-void BaseVideoPlayer::process()
+void BaseVideoPlayer::threadedFunction()
 {
 	OMXPacket *omxPacket = NULL;
 
 	//m_pts was previously set to 0 - might need later...
 	//currentPTS = 0;
 	
-	while(!doStop && !doAbort)
+	while(isThreadRunning())
 	{
-		lock();
-		if(packets.empty())
-		{
-			pthread_cond_wait(&m_packet_cond, &m_lock);
-		}
-		unlock();
 
 		if(doAbort)
 		{
 			break;
 		}
 
-		lock();
 		if(doFlush && omxPacket)
 		{
 			omxReader->freePacket(omxPacket, __func__);
@@ -240,9 +199,8 @@ void BaseVideoPlayer::process()
 				packets.pop_front();
 			}
 		}
-		unlock();
 
-		lockDecoder();
+		//lockDecoder();
 		if(doFlush && omxPacket)
 		{
 			omxReader->freePacket(omxPacket, __func__);
@@ -258,7 +216,7 @@ void BaseVideoPlayer::process()
 				omxPacket = NULL;
 			}
 		}
-		unlockDecoder();
+		//unlockDecoder();
 
 
 	}
@@ -269,28 +227,20 @@ void BaseVideoPlayer::process()
 	}
 }
 
-bool BaseVideoPlayer::closeDecoder()
-{
-	if(decoder)
-	{
-		delete decoder;
-	}
-	decoder   = NULL;
-	return true;
-}
-
 void BaseVideoPlayer::submitEOS()
 {
+    //lock();
 	if(decoder)
 	{
 		decoder->submitEOS();
 	}
+    //unlock();
 }
 
 bool BaseVideoPlayer::EOS()
 {
 	bool atEndofStream = false;
-
+    //lock();
 	if (decoder)
 	{
 		if (packets.empty() && decoder->EOS())
@@ -299,6 +249,7 @@ bool BaseVideoPlayer::EOS()
 			atEndofStream = true;
 		}
 	}
+   // unlock();
 	return atEndofStream;
 }
 
