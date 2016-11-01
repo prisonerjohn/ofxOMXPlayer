@@ -13,11 +13,11 @@ public:
     int pauseStartTime;
     bool doPause;
     bool doRestart;
-
+    
     //step test
     bool doStepTest;
     int stepCounter;
-
+    
     //scrub test
     bool doScrubTest;
     int scrubCounter;
@@ -36,10 +36,16 @@ public:
     
     bool doDecreaseSpeedTest;
     int decreaseSpeedTestFrameNum;
-
+    
+    vector<string> filterNames;
+    bool doFilterTest;
+    int currentFilterIndex;
+    int filterTestFrameNum;
     PlaybackTestRunner()
     {
         stopAll();
+        filterNames = OMX_Maps::getInstance().getImageFilterNames();
+        
     }
     
     
@@ -66,7 +72,22 @@ public:
         
         doDecreaseSpeedTest = false;
         decreaseSpeedTestFrameNum = false;
+        
+        doFilterTest = false;
+        currentFilterIndex = 0;
+        filterTestFrameNum = 0;
     }
+    
+    
+    
+    void startFilterTest(BaseTest* test_)
+    {
+        stopAll();
+        test = test_;
+        doFilterTest = true;
+        ofLog() << "STARTING FILTER TEST";
+    }
+    
     
     void startDecreaseSpeedTest(BaseTest* test_)
     {
@@ -90,7 +111,7 @@ public:
         test = test_;
         doPause = true;
         ofLog() << "STARTING PAUSE TEST";
-
+        
     }
     void startRestartTest(BaseTest* test_)
     {
@@ -98,7 +119,7 @@ public:
         test = test_;
         doRestart = true;
         ofLog() << "STARTING RESTART TEST";
-
+        
     }
     
     void startStepTest(BaseTest* test_)
@@ -107,7 +128,7 @@ public:
         test = test_;
         doStepTest = true;
         ofLog() << "STARTING STEP TEST";
-
+        
     }
     void startScrubTest(BaseTest* test_)
     {
@@ -173,7 +194,7 @@ public:
                 if(ofGetFrameNum() % 30 == 0)
                 {
                     ofLogVerbose() << "stepCounter: " << stepCounter << " currentFrame: " << currentFrame;
-
+                    
                     if(currentFrame+1 < test->omxPlayer->getTotalNumFrames())
                     {
                         test->omxPlayer->stepFrameForward();
@@ -213,7 +234,7 @@ public:
                         scrubCounter = 0;
                         ofLogVerbose(__func__) << test->name << " SCRUB TEST COMPLETE";
                         doPause = true;
-                             
+                        
                     }
                 }
                 
@@ -229,9 +250,9 @@ public:
                     info << "totalSeconds: " << totalSeconds << endl;
                     info << "middle: " << middle << endl;
                     info << "frameTarget: " << frameTarget << endl;
-
+                    
                     ofLogVerbose(__func__) << info.str();
-
+                    
                     test->omxPlayer->seekToTimeInSeconds(middle);
                     //doPause = true;
                 }else
@@ -316,14 +337,44 @@ public:
                 }
             }
             
-            
+            if(doFilterTest)
+            {
+                string filterName;
+                
+                if(!filterTestFrameNum)
+                {
+                    filterTestFrameNum = ofGetFrameNum();
+                    filterName = filterNames[currentFilterIndex];
+                    ofLogVerbose(__func__) << "filterName: " << filterName;
+                    test->omxPlayer->applyFilter(OMX_Maps::getInstance().getImageFilter(filterName));
+                }else
+                {
+                    if(ofGetFrameNum()-filterTestFrameNum == 90)
+                    {
+                        if(currentFilterIndex+1 < filterNames.size())
+                        {
+                            currentFilterIndex++;
+                            filterName = filterNames[currentFilterIndex];
+                            ofLogVerbose(__func__) << "filterName: " << filterName;
+                            test->omxPlayer->applyFilter(OMX_Maps::getInstance().getImageFilter(filterName));
+                            filterTestFrameNum = ofGetFrameNum();
+                        }else
+                        {
+                            test->omxPlayer->applyFilter(OMX_Maps::getInstance().getImageFilter("None"));
+                            currentFilterIndex = 0;
+                            filterTestFrameNum = 0;
+                            doFilterTest = false;
+                        }
+                    }
+                }
+            }
             
             if(doVolumeTest)
             {
                 float currentVolume = test->omxPlayer->getVolume();
                 if(ofGetFrameNum() % 30 == 0)
                 {
-
+                    
                     if(!increaseTestComplete)
                     {
                         ofLog() << "increaseTestComplete: " << increaseTestComplete << "currentVolume: " << currentVolume;
@@ -339,7 +390,7 @@ public:
                     }else
                     {
                         ofLog() << "decreaseTestComplete: " << decreaseTestComplete << "currentVolume: " << currentVolume;
-
+                        
                         if(!decreaseTestComplete)
                         {
                             currentVolume = test->omxPlayer->getVolume();
@@ -363,7 +414,7 @@ public:
             }
             
         }
-    
+        
     }
     
 };

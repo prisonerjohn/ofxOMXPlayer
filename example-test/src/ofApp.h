@@ -49,8 +49,8 @@ public:
         
         tests.push_back(texturedStreamTest);
         tests.push_back(playlistTest);
-
-
+        
+        
         
         
         currentTestID = 0;
@@ -118,10 +118,11 @@ public:
         info << "PRESS 7 for VOLUME TEST" << endl;
         info << "PRESS 8 for INCREASE SPEED TEST" << endl;
         info << "PRESS 9 for DECREASE SPEED TEST" << endl;
-
+        info << "PRESS f for FILTER TEST" << endl;
+        
         ofDrawBitmapStringHighlight(info.str(), 600, 60, ofColor(ofColor::black, 90), ofColor::yellow);
-
-
+        
+        
     }
     
     void onTestComplete(BaseTest* test)
@@ -166,14 +167,14 @@ public:
                 playbackTestRunner.startSeekTest(currentTest);
                 break;
             }    
-              
+                
                 
             case '6':
             {
                 playbackTestRunner.startSeekToFrameTest(currentTest);
                 break;
             }
-            
+                
             case '7':
             {
                 playbackTestRunner.startVolumeTest(currentTest);
@@ -188,7 +189,12 @@ public:
             {
                 playbackTestRunner.startDecreaseSpeedTest(currentTest);
                 break;
-            } 
+            }
+            case 'f':
+            {
+                playbackTestRunner.startFilterTest(currentTest);
+                break;
+            }
             case 'n':
             {
                 doDeleteCurrent = true;
@@ -208,4 +214,3 @@ public:
         
     }
 };
-

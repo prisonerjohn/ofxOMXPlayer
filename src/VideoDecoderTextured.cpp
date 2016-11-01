@@ -274,7 +274,7 @@ bool VideoDecoderTextured::open(StreamInfo streamInfo_,
     if(doFilters)
     {
         
-        //decoderComponent.doFreeHandle = false;
+        decoderComponent.doFreeHandle = false;
         
         error = imageFXTunnel.Establish(false);
         OMX_TRACE(error);

@@ -91,11 +91,11 @@ void BaseVideoPlayer::applyFilter(OMX_IMAGEFILTERTYPE filter)
 {
     
     
-    //lock();
+    lock();
     //lockDecoder();
         decoder->filterManager.setFilter(filter);
     //unlockDecoder();
-    //unlock();
+    unlock();
 }
 
 void BaseVideoPlayer::lock()

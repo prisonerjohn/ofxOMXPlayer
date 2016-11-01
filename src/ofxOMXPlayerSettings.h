@@ -60,7 +60,7 @@ public:
         initialVolume = 0.5;
         videoWidth  = 0;
         videoHeight = 0;
-        enableFilters = false;
+        enableFilters = true;
         filter = OMX_ImageFilterNone;
 
     }
