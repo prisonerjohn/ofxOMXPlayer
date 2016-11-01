@@ -12,7 +12,9 @@
 #undef DEBUG_COMMANDS
 #undef DEBUG_PORTS
 #undef DEBUG_COMPONENTS
-#define COMPONENT_LOG(x)
+//#define COMPONENT_LOG(x)
+#define COMPONENT_LOG(x)  ofLogVerbose(__func__) << ofToString(x);
+
 #endif
 
 static void add_timespecs(struct timespec& time, long millisecs)
