@@ -74,5 +74,6 @@ public:
     OMXClock* omxClock;
     OMXReader* omxReader;
     void adjustFPS();
-    
+    OMX_IMAGEFILTERTYPE filter;
+    bool doApplyFilter;
 };

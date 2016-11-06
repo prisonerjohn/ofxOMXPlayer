@@ -56,27 +56,35 @@ BaseVideoDecoder::~BaseVideoDecoder()
     ofLogVerbose() << "doFilters: " << doFilters;
     if(doFilters)
     {
-        //imagefx->scheduler
-        //error = imageFXTunnel.Deestablish(); 
-        //OMX_TRACE(error);
-    }
-    
-    
-    
-    //decoder->scheduler or decoder->imagefx(dofilters) 
-    error = decoderTunnel.Deestablish();
-    OMX_TRACE(error);
-    
-    
-    
-    if (doFilters)
-    {
+        decoderComponent.flushAll();
         OMX_PARAM_U32TYPE extra_buffers;
         OMX_INIT_STRUCTURE(extra_buffers);
-        extra_buffers.nU32 = -2;
+        
+        error = decoderComponent.getParameter(OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
+        OMX_TRACE(error);
+        ofLogVerbose(__func__) << "extra_buffers.nU32: " << extra_buffers.nU32;
+        
+        extra_buffers.nU32 =(OMX_U32)0;
         
         error = decoderComponent.setParameter(OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
         OMX_TRACE(error);
+        
+        imageFXComponent.flushAll();
+        //decoder->imagefx
+        error = decoderTunnel.Deestablish(true, true);
+        OMX_TRACE(error);
+        
+        //imagefx->scheduler
+        error = imageFXTunnel.Deestablish(true, true); 
+        OMX_TRACE(error);
+   
+        
+   
+    }else
+    {
+        error = decoderTunnel.Deestablish();
+        OMX_TRACE(error);
+
     }
     
     

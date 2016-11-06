@@ -157,7 +157,7 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 
-
+    /*
 	if (doFilters)
 	{
 		OMX_PARAM_U32TYPE extra_buffers;
@@ -168,7 +168,7 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
         OMX_TRACE(error);
         if(error != OMX_ErrorNone) return false;
 	}
-
+     */
 	// broadcom omx entension:
 	// When enabled, the timestamp fifo mode will change the way incoming timestamps are associated with output images.
 	// In this mode the incoming timestamps get used without re-ordering on output images.

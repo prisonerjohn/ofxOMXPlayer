@@ -72,14 +72,12 @@ bool VideoDecoderTextured::open(StreamInfo streamInfo_,
         {
             return false;
         }
-        
         OMX_PARAM_U32TYPE extra_buffers;
         OMX_INIT_STRUCTURE(extra_buffers);
         extra_buffers.nU32 = (OMX_U32)5;
         
         error = decoderComponent.setParameter(OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
         OMX_TRACE(error);
-
         
         OMX_PARAM_PORTDEFINITIONTYPE portFormat;
         OMX_INIT_STRUCTURE(portFormat);

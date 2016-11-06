@@ -77,9 +77,9 @@ OMX_ERRORTYPE Tunnel::flush()
 }
 
 
-OMX_ERRORTYPE Tunnel::Deestablish()
+OMX_ERRORTYPE Tunnel::Deestablish(bool srcToNull, bool destToNull)
 {
-    TUNNEL_LOG(ofToString(sourceComponent->name + " : " + destinationComponent->name));
+    ofLogVerbose(__func__) << sourceComponentName + " : " + destinationComponentName;
     if (!isEstablished)
     {
         return OMX_ErrorNone;
@@ -97,10 +97,34 @@ OMX_ERRORTYPE Tunnel::Deestablish()
         error = sourceComponent->waitForEvent(OMX_EventPortSettingsChanged);
         OMX_TRACE(error);
     }
-
     
-    bool didTearDownTunnel = sourceComponent->tunnelToNull(sourcePort);
-    didTearDownTunnel = destinationComponent->tunnelToNull(destinationPort);
+    sourceComponent->flushAll();
+    destinationComponent->flushAll();
+    
+    bool didTearDownTunnel = false;
+    if(srcToNull)
+    {
+        didTearDownTunnel = sourceComponent->tunnelToNull(sourcePort); 
+        if(didTearDownTunnel)
+        {
+            //ofLogVerbose(__func__) << sourceComponentName << " SOURCE TO NULL";
+        }else
+        {
+            ofLogVerbose(__func__) << sourceComponentName << " SOURCE TO NULL FAILED";
+        }
+    }
+    if(destToNull)
+    {
+        didTearDownTunnel = destinationComponent->tunnelToNull(destinationPort);
+        if(didTearDownTunnel)
+        {
+            //ofLogVerbose(__func__) << destinationComponentName << " DEST TO NULL";
+        }else
+        {
+            ofLogVerbose(__func__) << destinationComponentName << " DEST TO NULL FAILED";
+        }
+    }
+
     
     unlock();
     isEstablished = false;

@@ -28,6 +28,7 @@ BaseVideoPlayer::BaseVideoPlayer()
 	pthread_mutex_init(&m_lock, NULL);
 	pthread_mutex_init(&m_lock_decoder, NULL);
 	validHistoryPTS = 0;
+    doApplyFilter = false;
 }
 
 BaseVideoPlayer::~BaseVideoPlayer()
@@ -87,14 +88,13 @@ int BaseVideoPlayer::getSpeed()
 	return speed;
 }
 
-void BaseVideoPlayer::applyFilter(OMX_IMAGEFILTERTYPE filter)
+void BaseVideoPlayer::applyFilter(OMX_IMAGEFILTERTYPE filter_)
 {
     
     
     lock();
-    //lockDecoder();
-        decoder->filterManager.setFilter(filter);
-    //unlockDecoder();
+    doApplyFilter = true;
+    filter = filter_;
     unlock();
 }
 
@@ -240,9 +240,17 @@ void BaseVideoPlayer::process()
 				packets.pop_front();
 			}
 		}
+    
 		unlock();
 
 		lockDecoder();
+        
+        if(doApplyFilter)
+        {
+            decoder->filterManager.setFilter(filter);
+            doApplyFilter = false;
+        }
+        
 		if(doFlush && omxPacket)
 		{
 			omxReader->freePacket(omxPacket, __func__);
@@ -258,6 +266,7 @@ void BaseVideoPlayer::process()
 				omxPacket = NULL;
 			}
 		}
+       
 		unlockDecoder();
 
 
