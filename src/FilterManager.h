@@ -36,9 +36,7 @@ public:
         
         imagefilterConfig.eImageFilter = imageFilter_;
         
-        OMX_ERRORTYPE error = OMX_SetConfig(imageFXComponent->handle,
-                                            OMX_IndexConfigCommonImageFilter,
-                                            &imagefilterConfig);
+        OMX_ERRORTYPE error = imageFXComponent->setConfig(OMX_IndexConfigCommonImageFilter, &imagefilterConfig);
         OMX_TRACE(error);
     }
     
