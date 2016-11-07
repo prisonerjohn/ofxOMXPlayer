@@ -22,8 +22,7 @@ class ofxOMXPlayerEngine: public ofThread
 {
 public:
     ofxOMXPlayerEngine();
-    ~ofxOMXPlayerEngine();
-    
+    void close();
     bool setup(ofxOMXPlayerSettings& settings);
     
     void loadMovie();

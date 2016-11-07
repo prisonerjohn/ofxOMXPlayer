@@ -1,5 +1,9 @@
 #include "ofMain.h"
+
+#define AUDIO_ENABLED false
+
 #include "ofApp.h"
+
 
 int main()
 {

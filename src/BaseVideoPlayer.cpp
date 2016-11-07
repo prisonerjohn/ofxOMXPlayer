@@ -31,16 +31,18 @@ BaseVideoPlayer::BaseVideoPlayer()
     doApplyFilter = false;
 }
 
-BaseVideoPlayer::~BaseVideoPlayer()
+void BaseVideoPlayer::close()
 {
-    
+    lock();
+        omxClock = NULL;
+        clockComponent = NULL;
+        decoder->close();
+        decoder       = NULL;
+        omxReader = NULL;
+    unlock();
     pthread_cond_destroy(&m_packet_cond);
     pthread_mutex_destroy(&m_lock);
     pthread_mutex_destroy(&m_lock_decoder);
-    omxClock = NULL;
-    clockComponent = NULL;
-    decoder       = NULL;
-    omxReader = NULL;
 
 }
 void BaseVideoPlayer::adjustFPS()

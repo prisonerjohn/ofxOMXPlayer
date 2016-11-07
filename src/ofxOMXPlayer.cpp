@@ -192,6 +192,7 @@ bool ofxOMXPlayer::openEngine(int startTimeInSeconds) //default 0
 {
     if (engine)
     {
+        engine->close();
         delete engine;
         engine = NULL;
     }
@@ -232,7 +233,7 @@ bool ofxOMXPlayer::openEngine(int startTimeInSeconds) //default 0
     if(settings.enableFilters)
     {
         
-        decoderHandle = engine->videoPlayer->decoder->decoderComponent.handle;
+        decoderHandle = engine->videoPlayer->decoder->decoderComponent->handle;
     }
     isOpen = setupPassed;
     return setupPassed;
@@ -911,6 +912,7 @@ void ofxOMXPlayer::close()
     
     if(engine)
     {
+        engine->close();
         delete engine;
         engine = NULL;
     }

@@ -30,6 +30,7 @@ public:
     {
 
         ofLogVerbose(__func__) << "imageFilter_: " << GetImageFilterString(imageFilter_);
+       /*
         OMX_CONFIG_IMAGEFILTERTYPE imagefilterConfig;
         OMX_INIT_STRUCTURE(imagefilterConfig);
         imagefilterConfig.nPortIndex = imageFXComponent->outputPort;
@@ -38,16 +39,19 @@ public:
         
         OMX_ERRORTYPE error = imageFXComponent->setConfig(OMX_IndexConfigCommonImageFilter, &imagefilterConfig);
         OMX_TRACE(error);
-    }
-    
-    /*void applyFilter()
-    {
-        OMX_ERRORTYPE error   = OMX_ErrorNone;
         
-        error = imageFXComponent->setConfig(OMX_IndexConfigCommonImageFilter, &imagefilterConfig);
+        */
+        OMX_CONFIG_IMAGEFILTERPARAMSTYPE config;
+        OMX_INIT_STRUCTURE(config);
+        config.nPortIndex = imageFXComponent->outputPort;
+        config.nNumParams = 1;
+        config.nParams[0] = 3;
+        config.eImageFilter = imageFilter_;
+        OMX_ERRORTYPE error = imageFXComponent->setConfig(OMX_IndexConfigCommonImageFilterParameters, &config);
         OMX_TRACE(error);
 
-    }*/
-    
+        
+        
+    }
     
 };

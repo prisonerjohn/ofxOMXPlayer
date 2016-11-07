@@ -13,10 +13,6 @@ VideoPlayerTextured::VideoPlayerTextured()
 	textureDecoder = NULL;
 }
 
-VideoPlayerTextured::~VideoPlayerTextured()
-{
-    close();
-}
 
 bool VideoPlayerTextured::open(StreamInfo hints, OMXClock* omxClock_, OMXReader* omxReader_, ofxOMXPlayerSettings& settings_, EGLImageKHR eglImage_)
 {
@@ -74,7 +70,7 @@ bool VideoPlayerTextured::openDecoder()
 
 	if(!textureDecoder->open(omxStreamInfo, omxClock, settings, eglImage))
 	{
-        delete textureDecoder;
+        textureDecoder->close();
         textureDecoder = NULL;
         decoder = NULL;
 		return false;
@@ -109,7 +105,7 @@ void VideoPlayerTextured::close()
 
 	if (textureDecoder)
 	{
-		delete textureDecoder;
+        textureDecoder->close();
 		textureDecoder = NULL;
 	};
 

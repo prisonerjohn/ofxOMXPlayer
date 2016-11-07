@@ -20,16 +20,15 @@ class BaseVideoDecoder
 {
 public:
     BaseVideoDecoder();
-    virtual ~BaseVideoDecoder();
     OMX_VIDEO_CODINGTYPE omxCodingType;
-    
+    void close();
     FilterManager filterManager;
     bool doFilters;
    
-    Component decoderComponent;
-    Component renderComponent;
-    Component schedulerComponent;
-    Component imageFXComponent;
+    Component* decoderComponent;
+    Component* renderComponent;
+    Component* schedulerComponent;
+    Component* imageFXComponent;
     
     OMXClock* omxClock;
     Component* clockComponent;

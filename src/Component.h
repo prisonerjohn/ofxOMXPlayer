@@ -69,17 +69,12 @@ public:
     
     unsigned int getInputBufferSpace();
     
-    void flushAll();
     void flushInput();
-    void flushOutput();
     
     OMX_BUFFERHEADERTYPE* getInputBuffer(long timeout=200);
-    OMX_BUFFERHEADERTYPE* getOutputBuffer();
     
     OMX_ERRORTYPE allocInputBuffers();
-    OMX_ERRORTYPE allocOutputBuffers();
     OMX_ERRORTYPE freeInputBuffers();
-    OMX_ERRORTYPE freeOutputBuffers();
     void resetEOS();
     bool EOS()
     {
@@ -124,18 +119,13 @@ private:
     vector<OMX_BUFFERHEADERTYPE*> inputBuffers;
     
     // OMXCore output buffers (video frames)
-    pthread_mutex_t   m_omx_output_mutex;
-    std::queue<OMX_BUFFERHEADERTYPE*> outputBuffersAvailable;
-    std::vector<OMX_BUFFERHEADERTYPE*> outputBuffers;
     sem_t         m_omx_fill_buffer_done;
     
     bool            doExit;
     pthread_cond_t  m_input_buffer_cond;
-    pthread_cond_t  m_output_buffer_cond;
     pthread_cond_t  m_omx_event_cond;
     bool            m_eos;
     bool            doFlushInput;
-    bool            doFlushOutput;
     void            lock();
     void            unlock();
     

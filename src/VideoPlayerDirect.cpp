@@ -29,10 +29,6 @@ VideoPlayerDirect::VideoPlayerDirect()
 	directDecoder = NULL;
 }
 
-VideoPlayerDirect::~VideoPlayerDirect()
-{
-    close();
-}
 
 bool VideoPlayerDirect::open(StreamInfo hints, OMXClock* omxClock_, OMXReader* omxReader_, ofxOMXPlayerSettings& settings_)
 {
@@ -81,7 +77,7 @@ bool VideoPlayerDirect::openDecoder()
 	if(!directDecoder->open(omxStreamInfo, omxClock, settings))
 	{
 
-        delete directDecoder;
+        directDecoder->close();
         directDecoder = NULL;
         decoder = NULL;
 		return false;
@@ -115,7 +111,7 @@ void VideoPlayerDirect::close()
 	
 	if (directDecoder)
 	{
-		delete directDecoder;
+		directDecoder->close();
 		directDecoder = NULL;
 	}
     decoder     = NULL;

@@ -810,12 +810,11 @@ void ofxOMXPlayerEngine::onVideoEnd()
     
 }
 
-#pragma mark shutdown
 
-ofxOMXPlayerEngine::~ofxOMXPlayerEngine()
+void ofxOMXPlayerEngine::close()
 {
     //ofLogVerbose(__func__) << "omxReader.remainingPackets: " << omxReader.remainingPackets;
-
+    lock();
     if(isThreadRunning())
     {
         stopThread();
@@ -830,15 +829,14 @@ ofxOMXPlayerEngine::~ofxOMXPlayerEngine()
     
     if (texturedPlayer)
     {
-        delete texturedPlayer;
         texturedPlayer = NULL;
     }
     if (directPlayer)
     {
-        delete directPlayer;
         directPlayer = NULL;
     }
-    
+    videoPlayer->close();
+    delete videoPlayer;
     videoPlayer = NULL;
     
     
@@ -858,7 +856,6 @@ ofxOMXPlayerEngine::~ofxOMXPlayerEngine()
     
     delete omxClock;
     omxClock = NULL;
-    
+    unlock();
 }
-
 

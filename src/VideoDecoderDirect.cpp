@@ -8,12 +8,6 @@ VideoDecoderDirect::VideoDecoderDirect()
 	doHDMISync   = false;
 }
 
-
-VideoDecoderDirect::~VideoDecoderDirect()
-{
-
-}
-
 bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxOMXPlayerSettings& settings_)
 {
 	OMX_ERRORTYPE error   = OMX_ErrorNone;
@@ -51,72 +45,79 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
 	}
 
 	std::string componentName = "OMX.broadcom.video_decode";
-	if(!decoderComponent.init(componentName, OMX_IndexParamVideoInit))
+    decoderComponent = new Component();
+	if(!decoderComponent->init(componentName, OMX_IndexParamVideoInit))
 	{
 		return false;
 	}
 
 	componentName = "OMX.broadcom.video_render";
-	if(!renderComponent.init(componentName, OMX_IndexParamVideoInit))
+    renderComponent = new Component();
+
+	if(!renderComponent->init(componentName, OMX_IndexParamVideoInit))
 	{
 		return false;
 	}
 
 	componentName = "OMX.broadcom.video_scheduler";
-	if(!schedulerComponent.init(componentName, OMX_IndexParamVideoInit))
+    schedulerComponent = new Component();
+
+	if(!schedulerComponent->init(componentName, OMX_IndexParamVideoInit))
 	{
 		return false;
 	}
 
     if(doFilters)
     {
-        decoderComponent.doFreeHandle = false;
+        decoderComponent->doFreeHandle = false;
 
         componentName = "OMX.broadcom.image_fx";
-        if(!imageFXComponent.init(componentName, OMX_IndexParamImageInit))
+        imageFXComponent = new Component();
+
+        if(!imageFXComponent->init(componentName, OMX_IndexParamImageInit))
         {
             return false;
         }
         
-        decoderTunnel.init(&decoderComponent, 
-                           decoderComponent.outputPort, 
-                           &imageFXComponent, 
-                           imageFXComponent.inputPort);
+        decoderTunnel.init(decoderComponent, 
+                           decoderComponent->outputPort, 
+                           imageFXComponent, 
+                           imageFXComponent->inputPort);
         
-        imageFXTunnel.init(&imageFXComponent, 
-                           imageFXComponent.outputPort, 
-                           &schedulerComponent, 
-                           schedulerComponent.inputPort);
+        imageFXTunnel.init(imageFXComponent, 
+                           imageFXComponent->outputPort, 
+                           schedulerComponent, 
+                           schedulerComponent->inputPort);
     }
     else
     {
-        decoderTunnel.init(&decoderComponent, 
-                           decoderComponent.outputPort, 
-                           &schedulerComponent, 
-                           schedulerComponent.inputPort);
+        decoderTunnel.init(decoderComponent, 
+                           decoderComponent->outputPort, 
+                           schedulerComponent, 
+                           schedulerComponent->inputPort);
     }
 
-    schedulerTunnel.init(&schedulerComponent,
-                         schedulerComponent.outputPort,
-                         &renderComponent,
-                         renderComponent.inputPort);
+    schedulerTunnel.init(schedulerComponent,
+                         schedulerComponent->outputPort,
+                         renderComponent,
+                         renderComponent->inputPort);
     
     clockTunnel.init(clockComponent,
                      clockComponent->inputPort + 1,
-                     &schedulerComponent,
-                     schedulerComponent.outputPort + 1);
+                     schedulerComponent,
+                     schedulerComponent->outputPort + 1);
     
 	error = clockTunnel.Establish(false);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 
-	error = decoderComponent.setState(OMX_StateIdle);
+	error = decoderComponent->setState(OMX_StateIdle);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 
 	OMX_VIDEO_PARAM_PORTFORMATTYPE formatType;
 	OMX_INIT_STRUCTURE(formatType);
-	formatType.nPortIndex = decoderComponent.inputPort;
+	formatType.nPortIndex = decoderComponent->inputPort;
 	formatType.eCompressionFormat = omxCodingType;
 
 	if (streamInfo.fpsscale > 0 && streamInfo.fpsrate > 0)
@@ -128,24 +129,24 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
 		formatType.xFramerate = 25 * (1<<16);
 	}
     
-	error = decoderComponent.setParameter(OMX_IndexParamVideoPortFormat, &formatType);
+	error = decoderComponent->setParameter(OMX_IndexParamVideoPortFormat, &formatType);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 
 	OMX_PARAM_PORTDEFINITIONTYPE portParam;
 	OMX_INIT_STRUCTURE(portParam);
-	portParam.nPortIndex = decoderComponent.inputPort;
+	portParam.nPortIndex = decoderComponent->inputPort;
 
-	error = decoderComponent.getParameter(OMX_IndexParamPortDefinition, &portParam);
+	error = decoderComponent->getParameter(OMX_IndexParamPortDefinition, &portParam);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 
-	portParam.nPortIndex = decoderComponent.inputPort;
+	portParam.nPortIndex = decoderComponent->inputPort;
 
 	portParam.format.video.nFrameWidth  = videoWidth;
 	portParam.format.video.nFrameHeight = videoHeight;
 
-	error = decoderComponent.setParameter(OMX_IndexParamPortDefinition, &portParam);
+	error = decoderComponent->setParameter(OMX_IndexParamPortDefinition, &portParam);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 
@@ -153,22 +154,21 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
 	OMX_INIT_STRUCTURE(concanParam);
 	concanParam.bStartWithValidFrame = OMX_FALSE;
 
-	error = decoderComponent.setParameter(OMX_IndexParamBrcmVideoDecodeErrorConcealment, &concanParam);
+	error = decoderComponent->setParameter(OMX_IndexParamBrcmVideoDecodeErrorConcealment, &concanParam);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 
-    /*
+    
 	if (doFilters)
 	{
 		OMX_PARAM_U32TYPE extra_buffers;
 		OMX_INIT_STRUCTURE(extra_buffers);
 		extra_buffers.nU32 = 5;
 
-		error = decoderComponent.setParameter(OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
+		error = decoderComponent->setParameter(OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
         OMX_TRACE(error);
         if(error != OMX_ErrorNone) return false;
 	}
-     */
 	// broadcom omx entension:
 	// When enabled, the timestamp fifo mode will change the way incoming timestamps are associated with output images.
 	// In this mode the incoming timestamps get used without re-ordering on output images.
@@ -178,7 +178,7 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
     OMX_CONFIG_BOOLEANTYPE timeStampMode;
     OMX_INIT_STRUCTURE(timeStampMode);
     timeStampMode.bEnabled = OMX_TRUE;
-    error = decoderComponent.setParameter((OMX_INDEXTYPE)OMX_IndexParamBrcmVideoTimestampFifo, &timeStampMode);
+    error = decoderComponent->setParameter((OMX_INDEXTYPE)OMX_IndexParamBrcmVideoTimestampFifo, &timeStampMode);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 
@@ -187,10 +187,10 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
 	{
 		OMX_NALSTREAMFORMATTYPE nalStreamFormat;
 		OMX_INIT_STRUCTURE(nalStreamFormat);
-		nalStreamFormat.nPortIndex = decoderComponent.inputPort;
+		nalStreamFormat.nPortIndex = decoderComponent->inputPort;
 		nalStreamFormat.eNaluFormat = OMX_NaluFormatStartCodes;
 
-		error = decoderComponent.setParameter((OMX_INDEXTYPE)OMX_IndexParamNalStreamFormatSelect, &nalStreamFormat);
+		error = decoderComponent->setParameter((OMX_INDEXTYPE)OMX_IndexParamNalStreamFormatSelect, &nalStreamFormat);
         OMX_TRACE(error);
         if(error != OMX_ErrorNone) return false;
 	}
@@ -199,7 +199,7 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
 	{
 		OMX_CONFIG_LATENCYTARGETTYPE latencyTarget;
 		OMX_INIT_STRUCTURE(latencyTarget);
-		latencyTarget.nPortIndex = renderComponent.inputPort;
+		latencyTarget.nPortIndex = renderComponent->inputPort;
 		latencyTarget.bEnabled = OMX_TRUE;
 		latencyTarget.nFilter = 2;
 		latencyTarget.nTarget = 4000;
@@ -208,13 +208,13 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
 		latencyTarget.nInterFactor = 500;
 		latencyTarget.nAdjCap = 20;
 
-		error = renderComponent.setConfig(OMX_IndexConfigLatencyTarget, &latencyTarget);
+		error = renderComponent->setConfig(OMX_IndexConfigLatencyTarget, &latencyTarget);
         OMX_TRACE(error);
         if(error != OMX_ErrorNone) return false;
 	}
 
    // Alloc buffers for the omx input port.
-	error = decoderComponent.allocInputBuffers(); 
+	error = decoderComponent->allocInputBuffers(); 
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 
@@ -224,7 +224,7 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
     if(error != OMX_ErrorNone) return false;
 
 	
-	error = decoderComponent.setState(OMX_StateExecuting);
+	error = decoderComponent->setState(OMX_StateExecuting);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 
@@ -235,11 +235,11 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
         OMX_TRACE(error);
         if(error != OMX_ErrorNone) return false;
         
-		error = imageFXComponent.setState(OMX_StateExecuting);
+		error = imageFXComponent->setState(OMX_StateExecuting);
         OMX_TRACE(error);
         if(error != OMX_ErrorNone) return false;
         
-        filterManager.setup(&imageFXComponent);
+        filterManager.setup(imageFXComponent);
         filterManager.setFilter(settings.filter);
         OMX_TRACE(error);
         if(error != OMX_ErrorNone) return false;
@@ -251,11 +251,11 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
     if(error != OMX_ErrorNone) return false;
 
 	
-	error = schedulerComponent.setState(OMX_StateExecuting);
+	error = schedulerComponent->setState(OMX_StateExecuting);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
 	
-	error = renderComponent.setState(OMX_StateExecuting);
+	error = renderComponent->setState(OMX_StateExecuting);
     OMX_TRACE(error);
     if(error != OMX_ErrorNone) return false;
     
@@ -269,7 +269,7 @@ bool VideoDecoderDirect::open(StreamInfo& streamInfo_, OMXClock* omxClock_, ofxO
 	isOpen           = true;
 	doSetStartTime      = true;
 	
-	display.setup(&renderComponent, streamInfo, settings);
+	display.setup(renderComponent, streamInfo, settings);
 
 	isFirstFrame   = true;
     

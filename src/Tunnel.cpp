@@ -69,8 +69,8 @@ OMX_ERRORTYPE Tunnel::flush()
     
     lock();
     
-    sourceComponent->flushAll();
-    destinationComponent->flushAll();
+    sourceComponent->flushInput();
+    destinationComponent->flushInput();
     
     unlock();
     return OMX_ErrorNone;
@@ -98,8 +98,8 @@ OMX_ERRORTYPE Tunnel::Deestablish(bool srcToNull, bool destToNull)
         OMX_TRACE(error);
     }
     
-    sourceComponent->flushAll();
-    destinationComponent->flushAll();
+    sourceComponent->flushInput();
+    destinationComponent->flushInput();
     
     bool didTearDownTunnel = false;
     if(srcToNull)

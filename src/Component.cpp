@@ -46,11 +46,9 @@ Component::Component()
 
 
 	pthread_mutex_init(&m_omx_input_mutex, NULL);
-	pthread_mutex_init(&m_omx_output_mutex, NULL);
 	pthread_mutex_init(&event_mutex, NULL);
 	pthread_mutex_init(&eos_mutex, NULL);
 	pthread_cond_init(&m_input_buffer_cond, NULL);
-	pthread_cond_init(&m_output_buffer_cond, NULL);
 	pthread_cond_init(&m_omx_event_cond, NULL);
 
 
@@ -62,16 +60,6 @@ Component::~Component()
 {
     COMPONENT_LOG(name)
     OMX_ERRORTYPE error;
-
-    if(handle)
-    {
-        for (size_t i = 0; i < inputBuffers.size(); i++)
-        {
-            error = OMX_FreeBuffer(handle, inputPort, inputBuffers[i]);
-            OMX_TRACE(error);
-        }
-       
-    }
     
     while (!inputBuffersAvailable.empty())
     {
@@ -79,60 +67,57 @@ Component::~Component()
     }
     inputBuffers.clear();
     
-    //if(name != "OMX.broadcom.video_decode")
-    //{
-        
-    if (doFreeHandle) 
+    if(handle)
     {
+        for (size_t i = 0; i < inputBuffers.size(); i++)
+        {
+            error = OMX_FreeBuffer(handle, inputPort, inputBuffers[i]);
+            OMX_TRACE(error);
+        }
         
-        error = OMX_FreeHandle(handle);
-        OMX_TRACE(error); 
-        COMPONENT_LOG(name+" FREED");
-    }else
-    {
-        
-        OMX_STATETYPE currentState;
-        OMX_GetState(handle, &currentState);
-        
-        
-        OMX_PARAM_U32TYPE extra_buffers;
-        OMX_INIT_STRUCTURE(extra_buffers);
-        
-        error = getParameter(OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
-        OMX_TRACE(error);
-
-       
-        extra_buffers.nU32 = 0;
-        error = setParameter(OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
-        OMX_TRACE(error);
-        
-        error = getParameter(OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
-        
-        flushAll();
-        
-        disableAllPorts();
-        //error = OMX_FreeHandle(handle);
-        //OMX_TRACE(error); 
-        //ofLogVerbose(__func__) << info.str() << " " << name << " FREED";
-
+        if (doFreeHandle) 
+        {
+            
+            error = OMX_FreeHandle(handle);
+            OMX_TRACE(error); 
+            COMPONENT_LOG(name+" FREED");
+        }else
+        {
+            
+            OMX_STATETYPE currentState;
+            OMX_GetState(handle, &currentState);
+            
+            
+            OMX_PARAM_U32TYPE extra_buffers;
+            OMX_INIT_STRUCTURE(extra_buffers);
+            
+            error = getParameter(OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
+            OMX_TRACE(error);
+            
+            
+            extra_buffers.nU32 = 0;
+            error = setParameter(OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
+            OMX_TRACE(error);
+            
+            error = getParameter(OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
+            
+            flushInput();
+            
+            disableAllPorts();
+            //error = OMX_FreeHandle(handle);
+            //OMX_TRACE(error); 
+            //ofLogVerbose(__func__) << info.str() << " " << name << " FREED";
+            
+        }
     }
 
-    //}
     
     handle = NULL;
-    
-    
-    //error =  waitForCommand(OMX_CommandPortDisable, inputPort);
-    //OMX_TRACE(error);
-    
-  
  
 	pthread_mutex_destroy(&m_omx_input_mutex);
-	pthread_mutex_destroy(&m_omx_output_mutex);
 	pthread_mutex_destroy(&event_mutex);
 	pthread_mutex_destroy(&eos_mutex);
 	pthread_cond_destroy(&m_input_buffer_cond);
-	pthread_cond_destroy(&m_output_buffer_cond);
 	pthread_cond_destroy(&m_omx_event_cond);
 
 	pthread_mutex_destroy(&m_lock);
@@ -219,13 +204,6 @@ OMX_ERRORTYPE Component::FreeOutputBuffer(OMX_BUFFERHEADERTYPE *omxBuffer)
 	return error;
 }
 
-
-void Component::flushAll()
-{
-	flushInput();
-	flushOutput();
-}
-
 void Component::flushInput()
 {
 	if(!handle) 
@@ -241,21 +219,6 @@ void Component::flushInput()
 	unlock();
 }
 
-void Component::flushOutput()
-{
-    if(!handle) 
-    {
-        ofLogError(__func__) << name << " NO HANDLE";
-    }
-	lock();
-
-	OMX_ERRORTYPE error = OMX_ErrorNone;
-	error = OMX_SendCommand(handle, OMX_CommandFlush, outputPort, NULL);
-	OMX_TRACE(error, name);
-    
-
-	unlock();
-}
 
 // timeout in milliseconds
 OMX_BUFFERHEADERTYPE* Component::getInputBuffer(long timeout)
@@ -293,25 +256,6 @@ OMX_BUFFERHEADERTYPE* Component::getInputBuffer(long timeout)
 	return omx_input_buffer;
 }
 
-OMX_BUFFERHEADERTYPE* Component::getOutputBuffer()
-{
-    if(!handle) 
-    {
-        ofLogError(__func__) << name << " NO HANDLE";
-    }
-	OMX_BUFFERHEADERTYPE *omx_output_buffer = NULL;
-
-
-	pthread_mutex_lock(&m_omx_output_mutex);
-	if(!outputBuffersAvailable.empty())
-	{
-		omx_output_buffer = outputBuffersAvailable.front();
-		outputBuffersAvailable.pop();
-	}
-	pthread_mutex_unlock(&m_omx_output_mutex);
-
-	return omx_output_buffer;
-}
 
 OMX_ERRORTYPE Component::allocInputBuffers()
 {
@@ -370,65 +314,6 @@ OMX_ERRORTYPE Component::allocInputBuffers()
 	return error;
 }
 
-OMX_ERRORTYPE Component::allocOutputBuffers()
-{
-	
-    if(!handle) 
-    {
-        ofLogError(__func__) << name << " NO HANDLE";
-        return OMX_ErrorNone;
-    }
-    OMX_ERRORTYPE error = OMX_ErrorNone;
-	
-
-	OMX_PARAM_PORTDEFINITIONTYPE portFormat;
-	OMX_INIT_STRUCTURE(portFormat);
-	portFormat.nPortIndex = outputPort;
-
-	error = OMX_GetParameter(handle, OMX_IndexParamPortDefinition, &portFormat);
-    OMX_TRACE(error);
-	if(error != OMX_ErrorNone)
-	{
-		return error;
-	}
-
-
-	if(getState() != OMX_StateIdle)
-	{
-		if(getState() != OMX_StateLoaded)
-		{
-			setState(OMX_StateLoaded);
-		}
-		setState(OMX_StateIdle);
-	}
-
-	error = enablePort(outputPort);
-    OMX_TRACE(error);
-	if(error != OMX_ErrorNone)
-	{
-		return error;
-	}
-
-	for (size_t i = 0; i < portFormat.nBufferCountActual; i++)
-	{
-		OMX_BUFFERHEADERTYPE *buffer = NULL;
-        error = OMX_AllocateBuffer(handle, &buffer, outputPort, NULL, portFormat.nBufferSize);
-        OMX_TRACE(error);
-        if(error != OMX_ErrorNone)
-        {
-            return error;
-        }
-		buffer->nOutputPortIndex = outputPort;
-		buffer->nFilledLen       = 0;
-		buffer->nOffset          = 0;
-		buffer->pAppPrivate      = (void*)i;
-        outputBuffers.push_back(buffer);
-        outputBuffersAvailable.push(buffer);
-	}
-
-
-	return error;
-}
 
 OMX_ERRORTYPE Component::enableAllPorts()
 {
@@ -1081,47 +966,6 @@ OMX_ERRORTYPE Component::freeInputBuffers()
     return error;
 }
 
-OMX_ERRORTYPE Component::freeOutputBuffers()
-{
-    if(!handle) 
-{
-	ofLogError(__func__) << name << " NO HANDLE";
-	return OMX_ErrorNone;
-}
-    
-    OMX_ERRORTYPE error = OMX_ErrorNone;
-    
-    if(outputBuffers.empty())
-    {
-        return OMX_ErrorNone;
-    }
-    
-    pthread_mutex_lock(&m_omx_output_mutex);
-    pthread_cond_broadcast(&m_output_buffer_cond);
-    
-    error = disablePort(outputPort);
-    OMX_TRACE(error);
-    
-    for (size_t i = 0; i < outputBuffers.size(); i++)
-    {        
-        error = OMX_FreeBuffer(handle, outputPort, outputBuffers[i]);
-        OMX_TRACE(error);
-    }
-    outputBuffers.clear();
-    
-    //error =  waitForCommand(OMX_CommandPortDisable, outputPort);
-    //OMX_TRACE(error);
-    
-    
-    while (!outputBuffersAvailable.empty())
-    {
-        outputBuffersAvailable.pop();
-    }
-    
-    pthread_mutex_unlock(&m_omx_output_mutex);
-    
-    return error;
-}
 
 
 //All events callback
@@ -1177,7 +1021,6 @@ OMX_ERRORTYPE Component::EventHandlerCallback(OMX_HANDLETYPE hComponent,
     }
     if(resourceError)
     {
-        pthread_cond_broadcast(&component->m_output_buffer_cond);
         pthread_cond_broadcast(&component->m_input_buffer_cond);
         pthread_cond_broadcast(&component->m_omx_event_cond);
     }
@@ -1244,18 +1087,7 @@ OMX_ERRORTYPE Component::FillBufferDoneCallback(OMX_HANDLETYPE hComponent,
         error = component->listener->onFillBuffer(component, pBuffer);
         OMX_TRACE(error);
         
-	}else
-    {
-        pthread_mutex_lock(&component->m_omx_output_mutex);
-        component->outputBuffersAvailable.push(pBuffer);
-        
-        // this allows (all) blocked tasks to be awoken
-        pthread_cond_broadcast(&component->m_output_buffer_cond);
-        
-        pthread_mutex_unlock(&component->m_omx_output_mutex);
-        
-        sem_post(&component->m_omx_fill_buffer_done);
-    }
+	}
     
     if (error == OMX_ErrorIncorrectStateOperation) 
     {

@@ -8,7 +8,6 @@ class VideoPlayerDirect : public BaseVideoPlayer
 {
 public:
     VideoPlayerDirect();
-    ~VideoPlayerDirect();
             
     VideoDecoderDirect* directDecoder;
     

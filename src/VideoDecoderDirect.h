@@ -13,7 +13,6 @@ public:
     VideoDecoderDirect();
     ~VideoDecoderDirect();
     bool open(StreamInfo&, OMXClock* omxClock_, ofxOMXPlayerSettings&);
-      
     void updateFrameCount();
     void onUpdate(ofEventArgs& args);
     

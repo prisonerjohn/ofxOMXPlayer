@@ -35,7 +35,7 @@ public:
         settings.useHDMIForAudio = true;	//default true
         settings.enableTexture = true;		//default true
         settings.enableLooping = true;		//default true
-        settings.enableAudio = true;		//default true, save resources by disabling
+        settings.enableAudio = AUDIO_ENABLED;		//default true, save resources by disabling
         //settings.doFlipTexture = true;		//default false
         
         settings.listener = this;

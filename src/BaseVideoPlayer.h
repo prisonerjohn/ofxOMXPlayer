@@ -18,7 +18,6 @@ class BaseVideoPlayer: public OMXThread
 {
 public:
     BaseVideoPlayer();
-    virtual ~BaseVideoPlayer();
     BaseVideoDecoder* decoder;
     std::deque<OMXPacket *> packets;
     
