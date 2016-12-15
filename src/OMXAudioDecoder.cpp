@@ -119,7 +119,7 @@ OMXAudioDecoder::OMXAudioDecoder()
     extraSize = 0;
 }
 
-OMXAudioDecoder::~OMXAudioDecoder()
+void OMXAudioDecoder::close()
 {
     if(isInitialized)
     {

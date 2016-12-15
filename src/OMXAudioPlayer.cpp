@@ -29,7 +29,6 @@
 
 OMXAudioPlayer::OMXAudioPlayer()
 {
-    isOpen          = false;
     omxClock = NULL;
     clockComponent        = NULL;
     omxReader       = NULL;
@@ -47,19 +46,6 @@ OMXAudioPlayer::OMXAudioPlayer()
     pthread_mutex_init(&m_lock_decoder, NULL);
 }
 
-OMXAudioPlayer::~OMXAudioPlayer()
-{
-    if(isOpen)
-    {
-        close();
-    }
-
-
-    pthread_cond_destroy(&m_audio_cond);
-    pthread_cond_destroy(&m_packet_cond);
-    pthread_mutex_destroy(&m_lock);
-    pthread_mutex_destroy(&m_lock_decoder);
-}
 
 void OMXAudioPlayer::lock()
 {
@@ -123,36 +109,37 @@ bool OMXAudioPlayer::open(StreamInfo& hints,
 
     Create();
 
-    isOpen        = true;
-
     return true;
 }
 
-bool OMXAudioPlayer::close()
+void OMXAudioPlayer::close()
 {
+    
     doAbort  = true;
     doFlush   = true;
 
     flush();
-
     if(ThreadHandle())
     {
         lock();
+        
         pthread_cond_broadcast(&m_packet_cond);
         unlock();
 
         StopThread("OMXAudioPlayer");
     }
-
+    
     closeDecoder();
     closeCodec();
 
-    isOpen          = false;
     currentPTS   = DVD_NOPTS_VALUE;
     speed         = DVD_PLAYSPEED_NORMAL;
+    
 
-
-    return true;
+    pthread_cond_destroy(&m_audio_cond);
+    pthread_cond_destroy(&m_packet_cond);
+    pthread_mutex_destroy(&m_lock);
+    pthread_mutex_destroy(&m_lock_decoder);
 }
 
 
@@ -453,7 +440,7 @@ bool OMXAudioPlayer::closeDecoder()
 {
     if(decoder)
     {
-        delete decoder;
+        decoder->close();
     }
     decoder   = NULL;
     return true;

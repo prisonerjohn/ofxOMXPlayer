@@ -84,9 +84,8 @@ class OMXAudioDecoder
 {
 public:
     
-    OMXAudioDecoder();
-    ~OMXAudioDecoder();
-    
+    OMXAudioDecoder();    
+    void close();
     enum EEncoded
     {
         ENCODED_NONE = 0,

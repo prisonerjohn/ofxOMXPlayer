@@ -842,7 +842,7 @@ void ofxOMXPlayerEngine::close()
     
     if (audioPlayer)
     {
-        delete audioPlayer;
+        audioPlayer->close();
         audioPlayer = NULL;
     }
     

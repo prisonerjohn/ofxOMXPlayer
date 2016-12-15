@@ -927,6 +927,9 @@ void ofxOMXPlayer::close()
     cropRectangle = NULL;
     directDisplay = NULL;
     isOpen = false;
+    system("sudo vcdbg reloc | grep 'free memory'");
+    system("vcgencmd cache_flush && sudo vcdbg reloc");
+    system("sudo vcdbg reloc | grep 'free memory'");
     
 }
 
@@ -935,6 +938,7 @@ ofxOMXPlayer::~ofxOMXPlayer()
     ofRemoveListener(ofEvents().update, this, &ofxOMXPlayer::onUpdate);
 
     close();
+
 }
 
 
@@ -950,6 +954,7 @@ void ofxOMXPlayer::onUpdateDuringExit(ofEventArgs& args)
         ofLogVerbose(__func__) << " EXITING VIA SIGNAL";
         
         close();
+        
         ofxOMXPlayer::doExit = false;
         if(decoderHandle)
         {
@@ -958,6 +963,7 @@ void ofxOMXPlayer::onUpdateDuringExit(ofEventArgs& args)
             decoderHandle = NULL;
         }
         OMXInitializer::getInstance().deinit();
+        
         ofExit();
     }
 }

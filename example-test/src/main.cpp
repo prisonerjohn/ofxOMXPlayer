@@ -1,6 +1,6 @@
 #include "ofMain.h"
 
-#define AUDIO_ENABLED false
+#define AUDIO_ENABLED true
 
 #include "ofApp.h"
 
