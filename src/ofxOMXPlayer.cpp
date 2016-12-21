@@ -927,9 +927,9 @@ void ofxOMXPlayer::close()
     cropRectangle = NULL;
     directDisplay = NULL;
     isOpen = false;
-    system("sudo vcdbg reloc | grep 'free memory'");
-    system("vcgencmd cache_flush && sudo vcdbg reloc");
-    system("sudo vcdbg reloc | grep 'free memory'");
+    //system("sudo vcdbg reloc | grep 'free memory'");
+    //system("vcgencmd cache_flush && sudo vcdbg reloc");
+    //system("sudo vcdbg reloc | grep 'free memory'");
     
 }
 
