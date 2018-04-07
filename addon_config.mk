@@ -8,10 +8,10 @@
 # Variables can be specified using = or +=
 # = will clear the contents of that variable both specified from the file or the ones parsed
 # from the file system
-# += will add the values to the previous ones in the file or the ones parsed from the file 
+# += will add the values to the previous ones in the file or the ones parsed from the file
 # system
-# 
-# The PG can be used to detect errors in this file, just create a new project with this addon 
+#
+# The PG can be used to detect errors in this file, just create a new project with this addon
 # and the PG will write to the console the kind of error and in which line it is
 
 meta:
@@ -23,30 +23,30 @@ meta:
 
 linuxarmv6l:
 	FFMPEG_LIB_VERSION = linuxarmv6l
-		
+
 linuxarmv7l:
 	FFMPEG_LIB_VERSION = linuxarmv7l
-	ADDITIONAL_LIBS = -lbz2  
+	ADDITIONAL_LIBS = -lbz2
 
 common:
-	OFXOMXPLAYER_ROOT = $(OF_ROOT)/addons/ofxOMXPlayer
-	FFMPEG_ROOT = $(OFXOMXPLAYER_ROOT)/libs/$(FFMPEG_LIB_VERSION)/ffmpeg
-	ADDON_INCLUDES = $(OFXOMXPLAYER_ROOT)/src $(FFMPEG_ROOT)/include 
-	
-	ADDON_CFLAGS = -I$(OFXOMXPLAYER_ROOT)/src
-	ADDON_CFLAGS += -I$(FFMPEG_ROOT)/include
-	ADDON_CFLAGS += -fPIC -U_FORTIFY_SOURCE -Wall -ftree-vectorize -ftree-vectorize -Wno-deprecated-declarations -Wno-sign-compare -Wno-unknown-pragmas -Wno-unused-function -Wno-unused-but-set-variable
+	FFMPEG_ROOT = libs/$(FFMPEG_LIB_VERSION)/ffmpeg
+
+	ADDON_INCLUDES = src $(FFMPEG_ROOT)/include
+
+	ADDON_CFLAGS = -fPIC -U_FORTIFY_SOURCE -Wall -ftree-vectorize -ftree-vectorize -Wno-deprecated-declarations -Wno-sign-compare -Wno-unknown-pragmas -Wno-unused-function -Wno-unused-but-set-variable
 
 	FFMPEG_LIBS = $(FFMPEG_ROOT)/lib
-	FORMAT_STATIC=$(FFMPEG_LIBS)/libavformat.a
-	CODEC_STATIC=$(FFMPEG_LIBS)/libavcodec.a
-	SCALE_STATIC=$(FFMPEG_LIBS)/libswscale.a
-	UTIL_STATIC=$(FFMPEG_LIBS)/libavutil.a
+
+	ADDON_LIBS = 
+	ADDON_LIBS += $(FFMPEG_LIBS)/libavformat.a
+	ADDON_LIBS += $(FFMPEG_LIBS)/libavcodec.a
+	ADDON_LIBS += $(FFMPEG_LIBS)/libswscale.a
+	ADDON_LIBS += $(FFMPEG_LIBS)/libavutil.a
+	ADDON_LIBS += $(FFMPEG_LIBS)/libavfilter.a
+	ADDON_LIBS += $(FFMPEG_LIBS)/libswresample.a
 
 	#unused but available
-	FILTER_STATIC=$(FFMPEG_LIBS)/libavfilter.a
-	POSTPROC_STATIC=$(FFMPEG_LIBS)/libpostproc.a
-	DEVICE_STATIC=$(FFMPEG_LIBS)/libavdevice.a
-	RESAMPLE_STATIC=$(FFMPEG_LIBS)/libswresample.a
+	#ADDON_LIBS += $(FFMPEG_LIBS)/libpostproc.a
+	#ADDON_LIBS += $(FFMPEG_LIBS)/libavdevice.a
 
-	ADDON_LDFLAGS=-L$(FFMPEG_LIBS) $(FORMAT_STATIC) $(CODEC_STATIC) $(SCALE_STATIC) $(UTIL_STATIC) $(RESAMPLE_STATIC) $(FILTER_STATIC) -lm $(ADDITIONAL_LIBS)
+	ADDON_LDFLAGS = -lm $(ADDITIONAL_LIBS)
